@@ -1,0 +1,160 @@
+---
+title: "PUMAS"
+author: "Steve Simon and Satya Golla"
+date: "12/30/2021"
+output: html_document
+---
+
+```{r setup}
+library(sf)
+library(tidyverse)
+```
+
+### Public Use Microdata Areas (PUMA)
+
+A PUMA is a region within a state that contains no less than 100,000 people. There are files for PUMAs for [Kansas][c_puma_ks] and [Missouri][c_puma_mo]. The various functions described in the US counties shapefiles section will be used here.
+
+
+
+```{r read-puma-ks}
+path_name <- "../Data"
+file_name <- "tl_2021_20_puma10.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> all_puma_ks
+head(all_puma_ks)
+all_puma_ks                           %>%
+     ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("ks-puma")
+```
+
+variable in the file 
+
++ Variables:
+  +   "STATEFP10"
+  +   "PUMACE10"
+  +   "GEOID10"
+  +   "NAMELSAD10"
+  +   "MTFCC10" 
+  +   "FUNCSTAT10" 
+  +   "ALAND10"
+  +   "AWATER10"
+  +   "INTPTLAT10"
+  +   "INTPTLON10"
+  +   "geometry"
+
+
+```{r read-puma-mo}
+path_name <- "../data"
+file_name <- "tl_2021_29_puma10.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> all_puma_mo
+head(all_puma_mo)
+all_puma_mo                           %>%
+     ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("mo-puma")
+```
+
+
+variable in the file 
+
++ Variables:
+  +   "STATEFP10"
+  +   "PUMACE10"
+  +   "GEOID10"
+  +   "NAMELSAD10"
+  +   "MTFCC10" 
+  +   "FUNCSTAT10" 
+  +   "ALAND10"
+  +   "AWATER10"
+  +   "INTPTLAT10"
+  +   "INTPTLON10"
+  +   "geometry"
+
+```{r combine-pumas}
+all_puma_ks                %>%
+  bind_rows(all_puma_mo)  -> mo_ks_puma 
+mo_ks_puma %>%
+ ggplot()                               +
+      geom_sf(aes())                    +
+      ggtitle("mo-ks-puma")  
+```
+
+
+### Community districts
+
+This shapefile, Community_District, was provided by Neal Wilson. The various functions described in the US counties shapefiles section will be used here.
+
+```{r read-Community-Districts}
+file_name <- "Community_District.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> Community_Districts
+head(Community_Districts)
+Community_Districts                  %>%
+  ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("Community_Districts")
+Community_Districts %>%
+  st_transform(crs=st_crs(mo_ks_puma)) -> cd
+```
+
+#### Intersection of pumas with community districts
+
+Each community district will reside entirely inside a single county, and it is obvious to anyone familiar with the Kansas City metropolitan area which county is would be, so this is done mostly for the sake of continuity and completeness.
+
+It is important that both the pumas and the community districts use a common coordinate reference system. It is unclear WHICH coordinate reference system is best, but this is controlled by the st_crs function of the sf package.
+
+The st_intersects function will evaluate to TRUE if two shapefiles intersect. The st_area function will give the area of a shapefile and the st_intersection function will produce a new shapefile from the intersection of two shapefiles.
+
+
+```{r intersect-puma-Community-Districts}
+for(i in 1:2) {
+mo_ks_puma                             %>%
+st_intersects( cd[i,], sparse=FALSE) -> intersect_matrix
+  total_area  <- st_area(mo_ks_puma[intersect_matrix,]) / 1000000
+  intersect_area <- st_area(st_intersection(mo_ks_puma[intersect_matrix,],cd[i,])) / 1000000 
+  print(intersect_area/total_area)
+ map_position <- st_centroid(mo_ks_puma[intersect_matrix, ])
+ ggplot(data=mo_ks_puma[intersect_matrix, ], aes()) +
+        geom_sf(fill=NA, col="darkgreen") +
+        geom_sf(data=cd[i,], fill=NA, col="darkred")+
+   ggtitle(paste(c(cd$NAME[i],mo_ks_puma$GEOID10[intersect_matrix]),collapse = ", ")) -> map
+   print(map)
+}
+```
+
+
+### Neighborhoods
+
+This shapefile, Neighborhoods, was provided by Neal Wilson. The various functions described in the US counties shapefiles section will be used here.
+
+```{r read-Neighborhoods, eval = FALSE}
+file_name <- "Neighborhoods.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> Neighborhoods
+head(Neighborhoods)
+Neighborhoods                          %>%
+  ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("Neighborhoods")
+Neighborhoods                          %>%
+  st_transform(crs=st_crs(mo_ks_puma)) -> nbd
+```
+
+
+```{r intersect-puma-Neighborhoods}
+for(i in 1:2) {
+mo_ks_puma               %>%
+ st_transform(crs=st_crs(mo_ks_puma)) -> nbd
+ st_intersects( nbd, sparse=FALSE) -> intersect_matrix
+ print(intersect_matrix)
+ ggplot(data=nbd, aes()) +
+        geom_sf(fill="lightgreen", col="darkgreen") +
+        geom_sf(data=nbd[intersect_matrix, ], fill="pink", col="darkred") 
+} 
+```

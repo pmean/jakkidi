@@ -1,0 +1,109 @@
+---
+title: "Calculate intersection of blocks and neighborhoods"
+author: "Satya Golla and Steve Simon"
+date: "Created 2022-03-11"
+output: html_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding,
+  output_dir = "../results", output_format = "all") })
+---
+
+# Use code similar to calculate-cd-intersections
+ 
+This program will calculate which census blocks intersect with which neighborhoods. It relies on information stored in
+
++ bg.RData
++ bl.RData
++ nbd.RData
+
+### General information
+
+For information about various files, refer to the files that stored the relevant data (e.g., store_block_information.Rmd).
+
+It helps to know the FIPS (Federal Information Processing System) codes for Kansas (20) and Missouri (29).
+
+The important counties for this program are
+
+Cass County, MO (29037)
+Clay County, MO (29047)
+Jackson County, MO (29095)
+Johnson County, KS (20091)
+Leavenworth County, KS (20103)
+Wyandotte County, KS (20209)
+
+### Load relevant files
+
+```{r setup}
+library(sf)
+library(tidyverse)
+library(magrittr)
+path_name <- "../data/"
+load(paste0(path_name, "bg", ".RData"))
+load(paste0(path_name, "bl", ".RData"))
+load(paste0(path_name, "nbd", ".RData"))
+```
+
+### Intersect blocks and neighborhoods
+
+Identify the list of all blocks that partially or completely intersect with any neighborhood. Calculate the block area and add it back to the data frame.
+
+```{r intersect-bl}
+bl                                     %>%
+  st_intersection(nbd)                  -> bl_nbd_intersection
+```
+
+```{r intersect-bl-part2}
+bl_nbd_intersection                    %>%
+  st_area                              %>%
+  as.numeric                           %>%
+  tibble                               %>%
+  set_names("in_area")                 %>%
+  bind_cols(bl_nbd_intersection)       %>%
+  mutate(
+    bg_id=str_sub(bl_id, 1, 12))       %>%
+  mutate(
+    bl_prop_in=in_area/bl_area)        %>%
+  mutate(
+    
+    bl_prop_in=round(bl_prop_in, 3))   %>%
+  select(
+    bg_id,
+    bl_id, 
+    nbd_id, 
+    bl_prop_in)                         -> bl_nbd_intersection
+```
+
+
+### Intersect block groups and neighborhoods
+
+Identify the list of all block groups that partially or completely intersect with any neighborhood.
+
+```{r intersect-bg}
+bg                                     %>%
+  st_intersection(nbd)                 -> bg_nbd_intersection
+```
+
+```{r intersect-bg-part2}
+bg_nbd_intersection                    %>%
+  st_area                              %>%
+  as.numeric                           %>%
+  tibble                               %>%
+  set_names("in_area")                 %>%
+  bind_cols(bg_nbd_intersection)       %>%
+  mutate(bg_prop_in=in_area/bg_area)   %>%
+  mutate(
+    bg_prop_in=round(bg_prop_in, 3))   %>%
+  select(
+    bg_id,
+    nbd_id, 
+    bg_prop_in)                         -> bg_nbd_intersection
+```
+
+### Save the information in an RData file.
+
+```{r save}
+save(
+  bl_nbd_intersection,
+  bg_nbd_intersection,
+  file="../Data/nbd-intersections.RData")
+```

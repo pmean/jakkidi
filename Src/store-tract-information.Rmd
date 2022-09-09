@@ -1,0 +1,106 @@
+---
+title: "Store tract information"
+author: "Satya Golla and Steve Simon"
+date: "Created 2022-03-14"
+output: html_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding,
+  output_dir = "../results", output_format = "all") })  
+---
+
+```{r setup}
+library(sf)
+library(tidyverse)
+```
+
+### General information
+
+### Census tracts
+
+A Census tract is a region usually within a single county that contains roughly 4,000 people. 
+
+The starting point for downloading most Census shapefiles is [here][c_general]. There are files for census tracts for [Kansas][c_tract_ks] and [Missouri][c_tract_mo].
+
+[c_general]: https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html
+
+[c_tract_ks]: https://www2.census.gov/geo/tiger/TIGER2021/TRACT/tl_2021_20_tract.zip
+[c_tract_mo]: https://www2.census.gov/geo/tiger/TIGER2021/TRACT/tl_2021_29_tract.zip
+
+The important counties for this program are
+
+Cass County, MO (29037)
+Clay County, MO (29047)
+Jackson County, MO (29095)
+Johnson County, KS (20091)
+Leavenworth County, KS (20103)
+Platte County, MO (29165)
+Wyandotte County, KS (20209)
+
+```{r read-tract-ks}
+co_list <- c(
+  "091",
+  "103",
+  "209")
+path_name <- "../data"
+file_name <- "tr/tl_2021_20_tract.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      %>%
+  filter(COUNTYFP %in% co_list)        -> tr_ks
+glimpse(tr_ks)
+tr_ks                                  %>%
+     ggplot()                           +
+      geom_sf(aes())                    +
+      ggtitle("ks-tract")
+```
+
+```{r read-tract-mo}
+co_list <- c(
+  "037",
+  "047",
+  "095",
+  "165")
+path_name <- "../data"
+file_name <- "tr/tl_2021_29_tract.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      %>%
+  filter(COUNTYFP %in% co_list)         -> tr_mo
+glimpse(tr_mo)
+tr_mo                                  %>%
+     ggplot()                           +
+      geom_sf(aes())                    +
+      ggtitle("mo-tract")
+```
+
+```{r combine-tracts} 
+### Combine Kansas and Missouri
+
+tr_ks                                  %>%
+  bind_rows(tr_mo)                     %>%
+  rename(tr_id=GEOID)                  %>%
+  rename(tr_name=NAMELSAD)              -> tr
+
+tr                                     %>%
+  mutate(
+    tr_area=
+      as.numeric(st_area(tr)))         %>%
+  select(
+    tr_id,
+    tr_name,
+    tr_area,
+    geometry)                           -> tr
+
+glimpse(tr)
+
+tr                                     %>%
+ ggplot()                               +
+      geom_sf(aes())                    +
+      ggtitle("mo-ks-tracts")  
+```
+
+### Store as RData
+
+```{r save}
+save(tr, file="../data/tr.RData")
+```

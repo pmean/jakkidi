@@ -1,0 +1,249 @@
+
+---
+title: "Calculate intersection of blocks and community districts"
+author: "Satya Golla and Steve Simon"
+date: "Created 2022-03-11"
+output: html_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding,
+  output_dir = "../results", output_format = "all") })
+---
+
+This program will calculate which census blocks intersect with which community districts. It relies on information stored in
+
++ bg.RData
++ bl.RData
++ cd.RData
++ cd-intersections.RData
++ red.RData
+
+### General information
+
+For information about various files, refer to the files that stored the relevant data (e.g., store_block_information.Rmd).
+
+It helps to know the FIPS (Federal Information Processing System) codes for Kansas (20) and Missouri (29).
+
+The important counties for this program are
+
+Cass County, MO (29037)
+Clay County, MO (29047)
+Jackson County, MO (29095)
+Johnson County, KS (20091)
+Leavenworth County, KS (20103)
+Wyandotte County, KS (20209)
+
+### Setup
+
+```{r setup}
+library(sf)
+library(tidyverse)
+library(magrittr)
+path_name <- "../data/"
+```
+
+### Load key files
+
+Tracts
+
+```{r load-tr}
+load(paste0(path_name, "tr", ".RData"))
+glimpse(tr)
+```
+
+Block groups
+
+```{r load-bg}
+load(paste0(path_name, "bg", ".RData"))
+glimpse(bg)
+```
+
+Blocks
+
+```{r load-bl}
+load(paste0(path_name, "bl", ".RData"))
+glimpse(bl)
+```
+
+Community districts
+
+```{r load-cd}
+load(paste0(path_name, "cd", ".RData"))
+glimpse(cd)
+```
+
+Community district intersections
+
+```{r load-cd-intersections}
+load(paste0(path_name, "cd-intersections", ".RData"))
+glimpse(tr_cd_intersection)
+glimpse(bg_cd_intersection)
+glimpse(bl_cd_intersection)
+```
+
+```{r load-redistricting}
+load(paste0(path_name, "red", ".RData"))
+glimpse(red)
+```
+
+### Counts
+
+```{r display-nice-counts}
+# This code will compute the count of a vector
+# and display it with commas if it is greater
+# than 999.
+nice_count <- function(x) {
+  x                                    %>%
+    unique                             %>%
+    length                             %>%
+    format(big.mark=",")
+}
+```
+There are 7 counties in the Kansas City metropolitan area.
+
+There are `r nice_count(cd$cd_id)` community districts in the 7 counties.
+
+There are 
+`r nice_count(tr$tr_id)`
+tracts in the 7 counties. 
+`r nice_count(tr_cd_intersection$tr_id)`
+of these intersect partially or completely with one or more community districts.
+
+There are 
+`r nice_count(bg$bg_id)`
+block groups in the 7 counties. 
+`r nice_count(bg_cd_intersection$bg_id)`
+of these intersect partially or completely with one or more community districts.
+
+There are 
+`r nice_count(bl$bl_id)`
+blocks in the 7 counties. 
+`r nice_count(bl_cd_intersection$bl_id)` 
+of these intersect partially or completely with one or more community districts.
+
+### Get tract list
+
+Identify the list of all tracts that partially or completely intersect with any community district.
+
+```{r intersect-tr}
+tr_cd_intersection                     %>%
+  pull(tr_id)                          %>%
+  unique                                -> tr_list
+glimpse(tr_list)
+```
+
+### Get block group list
+
+Identify the list of all block groups that partially or completely intersect with any community district.
+
+```{r intersect-bg}
+bg_cd_intersection                     %>%
+  pull(bg_id)                          %>%
+  unique                                -> bg_list
+glimpse(bg_list)
+```
+
+### Get block list
+
+Now get a list of all census blocks that lie inside any of these block groups. Merge with red to get population and housing unit counts.
+
+```{r pull-blocks}
+bl                                     %>%
+  pull(bl_id)                          %>%
+  str_sub(1, 11)                       %>%
+  bind_cols(bl$bl_id)                  %>%
+  set_names(c("tr_id", "bl_id"))       %>%
+  
+  filter(tr_id %in% tr_list)           %>%
+  inner_join(red, 
+    by=c("tr_id", "bl_id"))               -> bl_list
+glimpse(bl_list)
+```
+
+### Calculate counts and areas of intersections
+
+```{r calculate-proportions}
+bl_cd_intersection                     %>%
+  full_join(bl_list, 
+    by=c("tr_id", "bg_id", "bl_id"))   %>%
+  replace_na(list(bl_prop_in=0))       %>%
+  replace_na(list(cd_id=0))            %>%
+  mutate(
+    people_in=
+      round(people*bl_prop_in))        %>%
+  mutate(
+    units_in=
+      round(units*bl_prop_in))         %>%
+  select(
+    tr_id,
+    bg_id,
+    bl_id,
+    cd_id,
+    bl_prop_in,
+    people,
+    people_in,
+    units,
+    units_in)                           -> bl_counts
+
+glimpse(bl_counts)
+```
+
+### Calculate counts for block groups
+
+```{r count-bl}
+red                                    %>%
+  group_by(bg_id)                      %>%
+  summarize(
+    people=sum(people),
+    units=sum(units))                   -> count_total
+glimpse(count_total)
+
+bl_counts                              %>%
+  group_by(tr_id, bg_id, cd_id)        %>%
+  summarize(
+    people_in=sum(people_in),
+    units_in=sum(units_in))            %>%
+  filter(cd_id > 0)                     -> count_in
+glimpse(count_in)
+
+count_in                               %>%
+  inner_join(count_total, by="bg_id")  %>%
+  filter(cd_id > 0)                     -> bg_counts
+glimpse(bg_counts)
+```
+
+### Calculate counts for tracts
+
+```{r count-tr}
+red                                    %>%
+  group_by(tr_id)                      %>%
+  summarize(
+    people=sum(people),
+    units=sum(units))                   -> count_total
+glimpse(count_total)
+
+bl_counts                              %>%
+  group_by(tr_id, cd_id)               %>%
+  summarize(
+    people_in=sum(people_in),
+    units_in=sum(units_in))            %>%
+  filter(cd_id > 0)                     -> count_in
+glimpse(count_in)
+
+count_in                               %>%
+  inner_join(count_total, by="tr_id")  %>%
+  filter(cd_id > 0)                     -> tr_counts
+glimpse(tr_counts)
+```
+
+### Save the information in an RData file.
+
+```{r save}
+save(
+  tr_counts,
+  tr_list,
+  bg_counts,
+  bg_list,
+  bl_counts,
+  bl_list,
+  file="../Data/cd-weights.RData")
+```

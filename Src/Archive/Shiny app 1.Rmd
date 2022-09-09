@@ -1,0 +1,262 @@
+---
+title: "Shiny app 1"
+author: "Satya Golla"
+date: "11/10/2021"
+output: html_document
+---
+
+
+library(shiny)
+library(sf)
+library(tidyverse)
+
+path_name <- "../../data"
+
+file_name <- "tl_2020_29_tract.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> mo_tracts
+
+mo_tracts %>%
+  filter(COUNTYFP=="095") -> jackson_co_tracts
+
+# Variables:
+#   "STATEFP"
+#   "COUNTYFP"
+#   "TRACTCE"
+#   "GEOID"
+#   "NAME"
+#   "NAMELSAD"
+#   "MTFCC"
+#   "FUNCSTAT"
+#   "ALAND"
+#   "AWATER"
+#   "INTPTLAT"
+#   "INTPTLON"
+#   "geometry"
+
+crs_tracts <- st_crs(mo_tracts)
+
+file_name <- "cb_2020_29_bg_500k.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> mo_block_groups
+
+mo_block_groups %>%
+  filter(COUNTYFP=="095") -> jackson_co_block_groups
+
+# Variables:
+#   "STATEFP"
+#   "COUNTYFP"
+#   "TRACTCE"
+#   "BLKGRPCE" 
+#   "AFFGEOID" 
+#   "GEOID"
+#   "NAME"
+#   "NAMELSAD"
+#   "LSAD"
+#   "ALAND"
+#   "AWATER"
+#   "geometry"
+
+crs_block_groups <- st_crs(mo_block_groups)
+
+file_name <- "tl_2020_29_tabblock20.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> mo_census_blocks
+
+mo_census_blocks %>%
+  filter(COUNTYFP20=="095") -> jackson_co_census_blocks
+
+# Variables:
+#   "STATEFP20"
+#   "COUNTYFP20"
+#   "TRACTCE20"
+#   "BLOCKCE20"
+#   "GEOID20"
+#   "NAME20"
+#   "MTFCC20"
+#   "UR20"
+#   "UACE20"
+#   "UATYPE20"
+#   "FUNCSTAT20"
+#   "ALAND20"
+#   "AWATER20"
+#   "INTPTLAT20"
+#   "INTPTLON20"
+#   "geometry" 
+
+crs_blocks <- st_crs(mo_census_blocks)
+
+file_name <- "cb_2017_us_zcta510_500k.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> mo_zcta
+
+mo_zcta %>%
+  filter(str_detect(GEOID10, "^641")) -> z641 
+
+# Variables:
+#    "ZCTA5CE10"
+#    "AFFGEOID10"
+#    "GEOID10"
+#    "ALAND10"
+#    "AWATER10"
+#    "geometry"
+
+crs_zcta <- st_crs(mo_zcta)
+
+file_name <- "Community_District.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> community_districts
+
+# Variables:
+#    "State"
+#    "STATE_FIPS"
+#    "CD_ID"
+#    "shid"
+#    "CD_NAME"
+#    "NAME"
+#    "Shape_Area"
+#    "Shape_Leng"
+#    "geometry" 
+
+crs_community_districts <- st_crs(community_districts)
+community_districts %>%
+  st_transform(crs=st_crs(mo_tracts)) -> cd
+
+
+file_name <- "Neighborhoods.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> neighborhoods
+
+# Variables:
+#    "NID"
+#    "AreaName"
+#    "nbr_id"
+#    "CommunityD"
+#    "id"
+#    "label_long"
+#    "shid"
+#    "Shape_Leng"
+#    "Shape_Le_1"
+#    "Shape_Area"
+#    "geometry" 
+
+crs_neighborhoods <- st_crs(neighborhoods)
+
+neighborhoods %>%
+  st_transform(crs=st_crs(mo_tracts)) -> nbd
+
+
+map_data <- neighborhoods
+map_names <- neighborhoods$AreaName
+map_number <- length(map_names)
+map_list <- 1:map_number
+names(map_list) <- map_names
+
+save(list=ls(), file="../../data/test-intersection.RData")
+
+ui <- fluidPage(
+
+  titlePanel("Test intersection, v1"),
+
+  sidebarLayout(
+    mainPanel(plotOutput("distPlot")), 
+    sidebarPanel(
+      radioButtons(
+        "radio1", 
+         h3("Display"), 
+         choices = list(
+           "Neighborhoods" = 1, 
+           "Community districts" = 2)),
+      radioButtons(
+        "radio2", 
+        h3("Subdivisions"), 
+        choices = list(
+          "Blocks" = 1, 
+          "Block groups" = 2,
+          "Tracts" = 3,
+          "ZCTAs" = 4)),
+      radioButtons(
+        "radio3", 
+        h3("Relationship"), 
+        choices = list(
+          "Intersects" = 1, 
+          "Contains" = 2,
+          "Covers" = 3,
+          "Covered_by" = 4,
+          "Overlaps" = 5,
+          "Touches" = 6)),
+      selectInput(
+        "select",
+        h3("Select box"),
+        choices=map_list),
+      helpText("Insert diagnostic message here.")
+      )
+    )
+  )
+
+
+server <- function(input, output) {
+  output$distPlot <- 
+  renderPlot(
+    {
+
+      i <- input$select
+      
+      if (input$radio1==1) {
+        map_data <- nbd[i, ]
+        map_names <- nbd$AreaName
+        map_number <- length(map_names)
+        map_list <- 1:map_number
+        names(map_list) <- map_names
+      }
+      
+      if (input$radio1==2) {
+        map_data <- cd[i, ]
+        map_names <- cd$CD_NAME
+        map_number <- length(map_names)
+        map_list <- 1:map_number
+        names(map_list) <- map_names
+      }
+      
+      if (input$radio1==1) lb <- paste(neighborhoods[i, "AreaName"], "Neighborhood")
+      if (input$radio1==2) lb <- paste(community_districts[i, "CD_NAME"], "Community district")
+      
+      if (input$radio2==1) {
+        subdivision <- jackson_co_census_blocks
+        lb <- paste(lb, "divided by census blocks")
+      }
+      if (input$radio2==2) {
+        subdivision <- jackson_co_block_groups
+        lb <- paste(lb, "divided by census blocks groups")
+      }
+      if (input$radio2==3) {
+        subdivision <- jackson_co_tracts
+        lb <- paste(lb, "divided by census tracts")
+      }
+      if (input$radio2==4) {
+        subdivision <- z641
+        lb <- paste(lb, "divided by zip code tabulation areas")
+      }
+      if (input$radio3==1) sub <- st_intersects(map_data, subdivision, sparse=FALSE)
+      if (input$radio3==2) sub <- st_contains(map_data, subdivision, sparse=FALSE)
+      if (input$radio3==3) sub <- st_covers(map_data, subdivision, sparse=FALSE)
+      if (input$radio3==4) sub <- st_covered_by(map_data, subdivision, sparse=FALSE)
+      if (input$radio3==5) sub <- st_overlaps(map_data, subdivision, sparse=FALSE)
+      if (input$radio3==6) sub <- st_touches(map_data, subdivision, sparse=FALSE)
+      
+      ggplot(data=map_data, aes()) +
+        geom_sf(fill="lightgreen", col="darkgreen") +
+        geom_sf(data=subdivision[sub, ], fill="pink", col="darkred") +
+        geom_sf(data=map_data, fill=NA, col="black", size=2) +
+        ggtitle(paste("Map of", lb))
+    }
+  )
+}
+
+shinyApp(ui = ui, server = server)

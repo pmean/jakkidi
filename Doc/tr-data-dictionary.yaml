@@ -1,0 +1,44 @@
+---
+data_dictionary: tr.RData
+
+authors: Satya Golla and Steve Simon
+
+copyright:  
+  Not directly stated, but this file should
+  be in the public domain.
+
+creation_date: Unknown
+
+description:  
+  Simple feature (sf) for tracts in a seven county region
+  of the Kansas City metropolitan area. Converted from
+  census shapefiles described in tract-data-dictionary.
+
+format: 
+  proprietary: Simple Feature (sf)
+
+  missing-value-code: not needed
+
+  rows: 570
+
+  columns: 4
+
+source:
+  U.S. Census Bureau and modified by 
+  store-tract-information.Rmd
+
+vars:
+  tr_id
+    label: Tract identifier; a concatenation of state, county and tract FIPS code
+    scale: eleven digit integer with leading zeros
+
+  tr_name 
+    label: Tract name
+
+  tr_area
+    label: Tract area
+    unit: square meters                   
+  
+  geometry:
+    label: Simple feature (sf) geometry
+---

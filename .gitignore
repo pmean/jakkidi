@@ -1,0 +1,16 @@
+*.Rproj
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+Data/*.*
+Data/bg/*.*
+Data/bl/*.*
+Data/cd/*.*
+Data/co/*.*
+Data/nbd/*.*
+Data/puma/*.*
+Data/red/*.*
+Data/tr/*.*
+Data/zc/*.*
+Doc/~*.*

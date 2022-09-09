@@ -1,0 +1,324 @@
+---
+data_dictionary: xx2020.pl.zip
+
+authors: Satya Golla and Steve Simon
+
+copyright:  
+  Not directly stated, but this file should
+  be in the public domain.
+
+creation_date: Unknown
+
+description:  
+  Redistricting files with population and
+  housing counts for every census block in
+  every state of the United States. Replace
+  xx with the two letter abbreviation for
+  each state.
+
+download: 
+  https://www.census.gov/programs-surveys/decennial-census/about/rdo/summary-files.html
+
+format: 
+  proprietary: Shapefile (zip)
+
+  missing-value-code: not needed
+
+  rows: varies by state
+
+  columns: <<positive integer>>
+
+source:
+  U.S. Census Bureau
+
+vars:
+  FILEID:       
+    label: File Identification 
+    
+  STUSAB:
+    label: State/US-Abbreviation (USPS)
+    
+  SUMLEV:        
+    label: Summary Level
+    
+  GEOVAR:       
+    label: Geographic Variant 
+    
+  GEOCOMP:      
+    label: Geographic Component
+    
+  CHARITER:
+    label: Characteristic Iteration 
+    
+  CIFSN:
+    label: Characteristic Iteration File Sequence Number 
+    
+  LOGRECNO:
+    label: Logical Record Number
+    
+  GEOID:
+    label: Geographic Record Identifier
+    
+  GEOCODE:
+    label: Geographic Code Identifier 
+    
+  REGION:
+    label: Region 
+    
+  DIVISION:
+    label: Division 
+    
+  STATE:
+    label: State (FIPS) 
+    
+  STATENS:
+    label: State (NS) 
+    
+  COUNTY:
+    label: County (FIPS) 
+    
+  COUNTYCC:
+    label: FIPS County Class Code
+    
+  COUNTYNS:
+    label: County (NS) 
+    
+  COUSUB:
+    label: County Subdivision (FIPS)
+    
+  COUSUBCC:
+    label: FIPS County Subdivision Class Code
+    
+  COUSUBNS:
+    label: County Subdivision (NS)
+    
+  SUBMCD:
+    label: Subminor Civil Division (FIPS)
+    
+  SUBMCDCC:
+    label: FIPS Subminor Civil Division Class Code
+    
+  SUBMCDNS:
+    label: Subminor Civil Division (NS)
+    
+  ESTATE:
+    label: Estate (FIPS)
+    
+  ESTATECC:
+    label: FIPS Estate Class Code
+    
+  ESTATENS:
+    label: Estate (NS)
+    
+  CONCIT:
+    label: Consolidated City (FIPS)
+    
+  CONCITCC:
+    label: FIPS Consolidated City Class Code
+    
+  CONCITNS:
+    label: Consolidated City (NS)
+    
+  PLACE:
+    label: Place (FIPS)
+    
+  PLACECC:
+    label: FIPS Place Class Code 
+    
+  PLACENS:
+    label: Place (NS)
+    
+  TRACT:
+    label: Census Tract
+    
+  BLKGRP:
+    label: Block Group
+    
+  BLOCK:
+    label: Block 
+    
+  AIANHH:
+    label: American Indian Area/Alaska Native Area/Hawaiian Home Land (Census)
+    
+  AIHHTLI:
+    label: American Indian Trust Land/Hawaiian Home Land Indicator
+    
+  AIANHHFP:
+    label: American Indian Area/Alaska Native Area/Hawaiian Home Land (FIPS)
+    
+  AIANHHCC:
+    label: FIPS American Indian Area/Alaska Native Area/Hawaiian Home Land Class Code
+    
+  AIANHHNS:
+    label: American Indian Area/Alaska Native Area/Hawaiian Home Land (NS)
+    
+  AITS:         
+    label: American Indian Tribal Subdivision (Census)
+    
+  AITSFP:
+    label: American Indian Tribal Subdivision (FIPS)
+    
+  AITSCC:
+    label: FIPS American Indian Tribal Subdivision Class Code
+    
+  AITSNS:
+    label: American Indian Tribal Subdivision (NS)
+    
+  TTRACT:
+    label: Tribal Census Tract 
+    
+  TBLKGRP:
+    label: Tribal Block Group
+    
+  ANRC:
+    label: Alaska Native Regional Corporation (FIPS) 
+    
+  ANRCCC:
+    label: FIPS Alaska Native Regional Corporation Class Code
+    
+  ANRCNS:
+    label: Alaska Native Regional Corporation (NS)
+    
+  CBSA:
+    label: Metropolitan Statistical Area/Micropolitan Statistical Area
+    
+  MEMI:
+    label: Metropolitan/Micropolitan Indicator
+    
+  CSA:
+    label: Combined Statistical Area
+    
+  METDIV:
+    label: Metropolitan Division
+    
+  NECTA:
+    label: New England City and Town Area 
+    
+  NMEMI:
+    label: NECTA Metropolitan/Micropolitan Indicator
+    
+  CNECTA:
+    label: Combined New England City and Town Area
+    
+  NECTADIV:
+    label: New England City and Town Area Division
+    
+  CBSAPCI:
+    label: Metropolitan Statistical Area/Micropolitan Statistical Area Principal City Indicator
+    
+  NECTAPCI:
+    label: New England City and Town Area Principal City Indicator
+    
+  UA:
+    label: Urban Area 
+    
+  UATYPE:
+    label: Urban Area Type
+    
+  UR:
+    label: Urban/Rural
+    
+  CD116:
+    label: Congressional District (116th)
+    
+  CD118:
+    label: Congressional District (118th) 
+    
+  CD119:
+    label: Congressional District (119th)
+    
+  CD120:
+    label: Congressional District (120th)
+    
+  CD121:
+    label: Congressional District (121st)
+    
+  SLDU18:
+    label: State Legislative District (Upper Chamber) (2018)
+    
+  SLDU22:
+    label: State Legislative District (Upper Chamber) (2022) 
+    
+  SLDU24:
+    label: State Legislative District (Upper Chamber) (2024)
+    
+  SLDU26:
+    label: State Legislative District (Upper Chamber) (2026)
+    
+  SLDU28:
+    label: State Legislative District (Upper Chamber) (2028)
+    
+  SLDL18:
+    label: State Legislative District (Lower Chamber) (2018)
+    
+  SLDL22:
+    label: State Legislative District (Lower Chamber) (2022) 
+    
+  SLDL24:
+    label: State Legislative District (Lower Chamber) (2024) 
+    
+  SLDL26:
+    label: State Legislative District (Lower Chamber) (2026)
+    
+  SLDL28:
+    label: State Legislative District (Lower Chamber) (2028)
+    
+  VTD:
+    label: Voting District
+    
+  VTDI:
+    label: Voting District Indicator
+    
+  ZCTA:
+    label: ZIP Code Tabulation Area (5-Digit)
+    
+  SDELM:
+    label: School District (Elementary)
+    
+  SDSEC:
+    label: School District (Secondary) 
+    
+  SDUNI:
+    label: School District (Unified)
+    
+  PUMA:
+    label: Public Use Microdata Area
+    
+  AREALAND:
+    label: Area (Land)
+    
+  AREAWATR:
+    label: Area (Water)
+    
+  BASENAME:
+    label: Area Base Name
+    
+  NAME:
+    label: Area Name-Legal/Statistical Area Description (LSAD) Term-Part Indicator
+    
+  FUNCSTAT:
+    label: Functional Status Code 
+    
+  GCUNI:
+    label: Geographic Change User Note Indicator
+    
+  POP100:
+    label: Population Count (100%)
+    
+  HU100:         
+    label: Housing Unit Count (100%)
+  
+  INTPTLAT:     
+    label: Internal Point (Latitude)
+    
+  INTPTLON:
+    label: Internal Point (Longitude) 
+    
+  LSADC:
+    label: Legal/Statistical Area Description Code 
+    
+  PARTFLAG:
+    label: Part Flag 
+  UGA:
+    label: Urban Growth Area 
+---

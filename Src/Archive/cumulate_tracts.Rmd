@@ -1,0 +1,96 @@
+---
+title: "Cumulate people and houses across tracts"
+author: "Satya Golla and Steve Simon"
+date: "Created 2022-03-14"
+output: html_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding,
+  output_dir = "../results", output_format = "all") })
+---
+
+This program will calculate the total number of people and houses within a census tract and the intersection with community districts.
+
+### General information
+
+For information about various files, refer to the files that stored the relevant data (e.g., store_block_information.Rmd).
+
+It helps to know the FIPS (Federal Information Processing System) codes for Kansas (20) and Missouri (29).
+
+The important counties for this program are
+
+Cass County, MO (29037)
+Clay County, MO (29047)
+Jackson County, MO (29095)
+Johnson County, KS (20091)
+Leavenworth County, KS (20103)
+Wyandotte County, KS (20209)
+
+### Load relevant files
+
+```{r setup}
+library(sf)
+library(tidyverse)
+library(magrittr)
+path_name <- "../data/"
+load(paste0(path_name, "red", ".RData"))
+load(paste0(path_name, "bl-cd", ".RData"))
+```
+
+
+### Summarize first by tracts
+
+```{r summarize1}
+red                                    %>%
+  mutate(POP100=as.numeric(POP100))    %>%
+  mutate(HU100=as.numeric(HU100))       -> red
+
+red                                    %>%
+  group_by(
+    statefp, 
+    countyfp, 
+    tract)                             %>%
+  summarize(
+    tract_people=sum(POP100),
+    tract_houses=sum(HU100),
+    tract_blocks=n())                   -> tract_summary
+glimpse(tract_summary)
+```
+
+### Then summarize by tracts and communities
+
+```{r summarize2}
+bl_cd                                  %>%
+  mutate(POP100=as.numeric(POP100))    %>%
+  mutate(HU100=as.numeric(HU100))      %>%
+  group_by(
+    statefp, 
+    countyfp, 
+    tract,
+    cd_id)                             %>%
+  summarize(
+    cd_people=sum(POP100*pct_in/100),
+    cd_houses=sum(HU100*pct_in/100),
+    cd_blocks=n())                     %>%
+    arrange(cd_id, tract)               -> cd_summary
+glimpse(cd_summary)
+```
+
+### Combine the two summaries
+
+```{r combine}
+cd_summary                              %>%
+  full_join(
+    tract_summary, 
+    by=c(
+      "statefp",
+      "countyfp",
+      "tract"))                         %>%
+  mutate(w1=cd_people/tract_people)     %>%
+  mutate(w2=cd_houses/tract_houses)      -> cd_w
+glimpse(cd_w)
+```
+
+### Store the result
+
+```{r store}
+save(cd_w, file="../Data/cd-w.RData")

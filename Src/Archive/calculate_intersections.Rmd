@@ -1,0 +1,474 @@
+---
+title: "Identify-intersections"
+author: "Satya Golla and Steve Simon"
+date: "11/17/2021"
+output: html_document
+---
+
+This program will read in census shapefiles for counties, public use microdata areas, census tracts, census block groups, census blocks, and zip code tabulation areas. Then it will compare them to the shapefiles for community districts and neighborhoods.
+
+For each community district and for each neighborhood, this program will find which counties, census tracts, etc. intersect. In some cases a single census shapefile will contain the entire community district or neighborhood. In addition, the program will compute the area of each census shapefile and what percentage of that area lies inside or outside the community district or neighborhood.
+
+The program will then attach total population and total housing units to these census shapefiles using the 2020 Census redistricting files.
+
+Finally, this program will read data from the American Community Survey, download information from the Census website, and re-allocate values to individual community districts and neighborhoods.
+
+### General information
+
+The starting point for downloading most Census shapefiles is [here][c_general]. The ftp site is a bit more difficult to navigate, but leads you directly to the files that you want. 
+
+It helps to know the FIPS (Federal Information Processing System) codes for Kansas (20) and Missouri (29).
+
+### US counties shapefiles
+
+There is a [single file][c_counties] of counties for all of the United States. Use the st_read function from the [sf package][r_sf] to read in the data. You may need to convert the coordinate reference system. That uses the st_crs function, also of the sf package. Counties are uniquely identified by a two digit state FIPS code and a three digit county FIPS code. These are combined into a five digit code, GEOID.
+
+The important counties for this program are
+
+Cass County, MO (29037)
+Clay County, MO (29047)
+Jackson County, MO (29095)
+Johnson County, KS (20091)
+Leavenworth County, KS (20103)
+Miami County, KS (20121)
+Wyandotte County, KS (20209)
+
+```{r setup}
+library(sf)
+library(tidyverse)
+```
+
+```{r read-county}
+path_name <- "../data"
+file_name <- "tl_2021_us_county.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> all_counties
+head(all_counties)
+all_counties                           %>%
+   filter(STATEFP==20)                    %>% 
+   ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("ks-counties")
+all_counties                           %>%
+   filter(STATEFP==29)                    %>% 
+   ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("mo-counties")
+```
+
+
+
+variable in the file 
+
++ Variables:
+  +  "STATEFP"
+  +   "COUNTYFP"
+  +   "TRACTCE"
+  +   "BLKGRPCE" 
+  +   "AFFGEOID" 
+  +   "GEOID"
+  +   "NAME"
+  +   "NAMELSAD"
+  +   "LSAD"
+  +   "ALAND"
+  +   "AWATER"
+  +   "geometry"
+ 
+
+
+
+### Public Use Microdata Areas (PUMA)
+
+A PUMA is a region within a state that contains no less than 100,000 people. There are files for PUMAs for [Kansas][c_puma_ks] and [Missouri][c_puma_mo]. The various functions described in the US counties shapefiles section will be used here.
+
+
+
+```{r read-puma-ks}
+path_name <- "../data"
+file_name <- "tl_2021_20_puma10.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> all_puma_ks
+head(all_puma_ks)
+all_puma_ks                           %>%
+     ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("ks-puma")
+```
+
+
+variable in the file 
+
++ Variables:
+  +   "STATEFP10"
+  +   "PUMACE10"
+  +   "GEOID10"
+  +   "NAMELSAD10"
+  +   "MTFCC10" 
+  +   "FUNCSTAT10" 
+  +   "ALAND10"
+  +   "AWATER10"
+  +   "INTPTLAT10"
+  +   "INTPTLON10"
+  +   "geometry"
+
+
+
+```{r read-puma-mo}
+path_name <- "../data"
+file_name <- "tl_2021_29_puma10.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> all_puma_mo
+head(all_puma_mo)
+all_puma_mo                           %>%
+     ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("mo-puma")
+```
+
+
+variable in the file 
+
++ Variables:
+  +   "STATEFP10"
+  +   "PUMACE10"
+  +   "GEOID10"
+  +   "NAMELSAD10"
+  +   "MTFCC10" 
+  +   "FUNCSTAT10" 
+  +   "ALAND10"
+  +   "AWATER10"
+  +   "INTPTLAT10"
+  +   "INTPTLON10"
+  +   "geometry"
+
+```{r combine-pumas}
+all_puma_ks                %>%
+  bind_rows(all_puma_mo)                %>%
+ ggplot()                               +
+      geom_sf(aes())                    +
+      ggtitle("mo-ks-puma")  
+  
+```
+
+### Census tracts
+
+A Census tract is a region usually within a single county that contains roughly 4,000 people. There are files for census tracts for [Kansas][c_tract_ks] and [Missouri][c_tract_mo].  The various functions described in the US counties shapefiles section will be used here.
+
+
+```{r read-tract-ks}
+path_name <- "../data"
+file_name <- "tl_2021_20_tract.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> all_tract_ks
+head(all_tract_ks)
+all_tract_ks                           %>%
+     ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("ks-tract")
+```
+
+
+```{r read-tract-mo}
+path_name <- "../data"
+file_name <- "tl_2021_29_tract.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> all_tract_mo
+head(all_tract_mo)
+all_tract_mo                           %>%
+     ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("mo-tract")
+```
+
+variable in the file 
+
++ Variables:
+  +   "STATEFP10"
+  +   "PUMACE10"
+  +   "GEOID10"
+  +   "NAMELSAD10"
+  +   "MTFCC10" 
+  +   "FUNCSTAT10" 
+  +   "ALAND10"
+  +   "AWATER10"
+  +   "INTPTLAT10"
+  +   "INTPTLON10"
+  +   "geometry"
+  
+### census block groups
+
+A census block group is a statistical division of census tracts, and generally defined to contain between 600 and 3000 people. There are files for census block groups for [Kansas][c_bg_ks] and [Missouri][c_bg_mo]. 
+
+
+```{r read-bg-ks}
+path_name <- "../Data"
+file_name <- "tl_2021_20_bg.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> all_bg_ks
+head(all_bg_ks)
+all_bg_ks                              %>%
+     ggplot()                           +
+      geom_sf(aes())                    +
+      ggtitle("ks-bg")
+```
+
+
+```{r read-bg-mo}
+path_name <- "../Data"
+file_name <- "tl_2021_29_bg.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> all_bg_mo
+head(all_bg_mo)
+all_bg_mo                              %>%
+     ggplot()                           +
+      geom_sf(aes())                    +
+      ggtitle("mo-bg")
+```
+
+
+
+### census blocks
+
+A census block is the smallest geographical unit used by the United States Census Bureau for tabulation of 100-percent data. There are files for census blocks for [Kansas][c]
+
+```{r read-johnson-county}
+file_name <- "tl_2020_20091_tabblock10.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> johnson_county_blocks
+head(johnson_county_blocks)
+johnson_county_blocks                  %>%
+     ggplot()                           +
+      geom_sf(aes())                    +
+      ggtitle("johnson_county_blocks")
+```
+
+
+```{r read-leavenworth-county}
+file_name <- "tl_2020_20103_tabblock10.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> leavenworth_county_blocks
+head(leavenworth_county_blocks)
+leavenworth_county_blocks                         %>%
+     ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("leavenworth_county_blocks")
+```
+
+
+```{r read-wyandotte-county}
+file_name <- "tl_2020_20209_tabblock10.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> wyandotte_county_blocks
+head(wyandotte_county_blocks)
+wyandotte_county_blocks                %>%
+  ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("wyandotte_county_blocks")
+```
+
+```{r read-jackson-county}
+file_name <- "tl_2020_29095_tabblock10.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> jackson_county_blocks
+head(jackson_county_blocks)
+jackson_county_blocks                  %>%
+  ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("jackson_county_blocks")
+```
+
+
+```{r read-cass-county}
+file_name <- "tl_2020_29037_tabblock10.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> cass_county_blocks
+head(cass_county_blocks)
+cass_county_blocks                  %>%
+  ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("cass_county_blocks")
+```
+
+
+```{r read-clay-county}
+file_name <- "tl_2020_29047_tabblock10.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> clay_county_blocks
+head(clay_county_blocks)
+clay_county_blocks                  %>%
+  ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("clay_county_blocks")
+```
+
+
+```{r read-miami-county}
+file_name <- "tl_2020_20121_tabblock10.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> miami_county_blocks
+head(miami_county_blocks)
+miami_county_blocks                  %>%
+  ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("miami_county_blocks")
+```
+
+
+
+```{r combine-blocks}
+johnson_county_blocks                   %>%
+  bind_rows(leavenworth_county_blocks)  %>%
+  bind_rows(wyandotte_county_blocks)    %>%
+  bind_rows(jackson_county_blocks)      %>%
+  bind_rows(cass_county_blocks)         %>%
+  bind_rows(clay_county_blocks)         %>%
+  bind_rows(miami_county_blocks)        %>%
+   ggplot()                             +
+      geom_sf(aes())                    +
+      ggtitle("all_county_blocks")  
+  
+```
+
+### Community districts
+
+This shapefile, Community_District, was provided by Neal Wilson. The various functions described in the US counties shapefiles section will be used here.
+
+```{r read-Community-Districts}
+file_name <- "Community_District.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> Community_Districts
+head(Community_Districts)
+Community_Districts                  %>%
+  ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("Community_Districts")
+Community_Districts %>%
+  st_transform(crs=st_crs(all_counties)) -> cd
+```
+
+### Neighborhoods
+
+This shapefile, Neighborhoods, was provided by Neal Wilson. The various functions described in the US counties shapefiles section will be used here.
+
+
+```{r read-Neighborhoods}
+file_name <- "Neighborhoods.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> Neighborhoods
+head(Neighborhoods)
+Neighborhoods                          %>%
+  ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("Neighborhoods")
+Neighborhoods                          %>%
+  st_transform(crs=st_crs(all_counties)) -> nbd
+```
+
+
+### Calculate intersections
+
+#### Intersection of counties with community districts
+
+Each community district will reside entirely inside a single county, and it is obvious to anyone familiar with the Kansas City metropolitan area which county is would be, so this is done mostly for the sake of continuity and completeness.
+
+It is important that both the counties and the community districts use a common coordinate reference system. It is uncelar WHICH coordinate reference system is best, but this is controlled by the st_crs function of the sf package.
+
+The st_intersects function will evaluate to TRUE if two shapefiles intersect. The st_area function will give the area of a shapefile and the st_intersection function will produce a new shapefile from the intersection of two shapefiles.
+
+```{r intersect-counties-Community-Districts}
+all_counties                         %>%
+  filter(STATEFP==20 | STATEFP==29)  ->       ks_mo_counties
+ks_mo_counties                       %>%
+  filter(STATEFP==29 & COUNTYFP=="095")               %>%
+  st_intersects( cd, sparse=FALSE) -> intersect_matrix
+ print(intersect_matrix)
+ ggplot(data=cd, aes()) +
+        geom_sf(fill="lightgreen", col="darkgreen") +
+        geom_sf(data=cd[intersect_matrix, ], fill="pink", col="darkred") 
+```
+
+
+
+#### Intersection of counties with neighborhoods
+
+Again, each neighborhood will reside in a single county. The various functions described in the intersection of counties with community districts section will be used here. 
+
+
+```{r intersect-counties-Neighborhoods}
+all_counties                         %>%
+  filter(STATEFP==20 | STATEFP==29)  ->       ks_mo_counties
+ks_mo_counties                       %>%
+  filter(STATEFP==29 & COUNTYFP=="095")               %>%
+  st_intersects( nbd, sparse=FALSE) -> intersect_matrix
+ print(intersect_matrix)
+ ggplot(data=nbd, aes()) +
+        geom_sf(fill="lightgreen", col="darkgreen") +
+        geom_sf(data=nbd[intersect_matrix, ], fill="pink", col="darkred") 
+```
+
+#### Intersection of PUMAs with community districts
+
+
+```{r intersect-puma-Community-Districts}
+mo_ks_puma                             %>%
+st_intersects( cd[1,], sparse=FALSE) -> intersect_matrix
+ print(intersect_matrix)
+ ggplot(data=cd[1,], aes()) +
+        geom_sf(fill="lightgreen", col="darkgreen") +
+        geom_sf(data=cd[intersect_matrix, ], fill="pink", col="darkred") 
+```
+
+
+#### etc.
+
+### Census redistricting files
+
+The Census redistricting files are found in a [different location][c_redistricting] on the Census website. You may wish to review the [Census help videos][c_help] on redistricting. There are separate redistricting files for [Kansas][c_redistricting_ks] and [Missouri][c_redistricting_mo]. The Census Bureau provides [R code][c_r_code] for reading these files.
+
+### American Community survey
+
+This work will take advantage of the acs library.
+
+<!---Key census links go here--->
+
+[r_sf]: https://r-spatial.github.io/sf/
+
+[r read_acs]: https://cran.r-project.org/package=acs
+
+[c_general]: https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html
+
+[c_counties]: https://www2.census.gov/geo/tiger/TIGER2021/COUNTY/tl_2021_us_county.zip
+[c_puma_ks]: https://www2.census.gov/geo/tiger/TIGER2021/PUMA/tl_2021_20_puma10.zip
+[c_puma_mo]:https://www2.census.gov/geo/tiger/TIGER2021/PUMA/tl_2021_29_puma10.zip
+[c_tract_ks]: https://www2.census.gov/geo/tiger/TIGER2021/TRACT/tl_2021_20_tract.zip
+[c_tract_mo]: https://www2.census.gov/geo/tiger/TIGER2021/TRACT/tl_2021_29_tract.zip
+[c_bg]: https://www2.census.gov/geo/tiger/TIGER2021/BG/
+[c_bg_ks]: https://www2.census.gov/geo/tiger/TIGER2021/BG/tl_2021_20_bg.zip
+[c_bg_mo]: https://www2.census.gov/geo/tiger/TIGER2021/BG/tl_2021_29_bg.zip
+
+Insert links for census block groups and census blocks.
+
+[c_redistricting]: https://www.census.gov/programs-surveys/decennial-census/about/rdo/summary-files.html
+
+[c_help]: https://www.census.gov/data/academy/courses/2020-census-redistricting-data.html
+
+[c_redistricting_ks]: https://www2.census.gov/programs-surveys/decennial/2020/data/01-Redistricting_File--PL_94-171/Kansas/ks2020.pl.zip
+[c_redistricting_mo]: https://www2.census.gov/programs-surveys/decennial/2020/data/01-Redistricting_File--PL_94-171/Missouri/mo2020.pl.zip
+
+[c_r_code]: https://www2.census.gov/programs-surveys/decennial/rdo/about/2020-census-program/Phase3/SupportMaterials/2020PL_R_import_scripts.zip

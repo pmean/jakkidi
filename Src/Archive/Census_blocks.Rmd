@@ -1,0 +1,177 @@
+---
+title: "Census_blocks"
+author: "Steve Simon and Satya Golla"
+date: "2/27/2022"
+output: html_document
+---
+
+
+```{r setup}
+library(sf)
+library(tidyverse)
+```
+
+
+
+```{r read-county}
+path_name <- "../data"
+file_name <- "tl_2021_us_county.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> all_counties
+head(all_counties)
+all_counties                           %>%
+   filter(STATEFP==20)                 %>% 
+   ggplot()                            +
+      geom_sf(aes())                   +
+      ggtitle("ks-counties")
+all_counties                           %>%
+   filter(STATEFP==29)                 %>% 
+   ggplot()                            +
+      geom_sf(aes())                   +
+      ggtitle("mo-counties")
+```
+
+### census blocks
+
+A census block is the smallest geographical unit used by the United States Census Bureau for tabulation of 100-percent data. There are files for census blocks for [Kansas][c]
+
+```{r read-johnson-county}
+file_name <- "tl_2020_20091_tabblock10.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> johnson_county_blocks
+head(johnson_county_blocks)
+johnson_county_blocks                  %>%
+     ggplot()                           +
+      geom_sf(aes())                    +
+      ggtitle("johnson_county_blocks")
+```
+
+
+```{r read-leavenworth-county}
+file_name <- "tl_2020_20103_tabblock10.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> leavenworth_county_blocks
+head(leavenworth_county_blocks)
+leavenworth_county_blocks              %>%
+     ggplot()                           +
+      geom_sf(aes())                    +
+      ggtitle("leavenworth_county_blocks")
+```
+
+
+```{r read-wyandotte-county}
+file_name <- "tl_2020_20209_tabblock10.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> wyandotte_county_blocks
+head(wyandotte_county_blocks)
+wyandotte_county_blocks                %>%
+  ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("wyandotte_county_blocks")
+```
+
+```{r read-jackson-county}
+file_name <- "tl_2020_29095_tabblock10.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> jackson_county_blocks
+head(jackson_county_blocks)
+jackson_county_blocks                  %>%
+  ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("jackson_county_blocks")
+```
+
+
+```{r read-cass-county}
+file_name <- "tl_2020_29037_tabblock10.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> cass_county_blocks
+head(cass_county_blocks) 
+cass_county_blocks                     %>%
+  ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("cass_county_blocks")
+```
+
+
+```{r read-clay-county}
+file_name <- "tl_2020_29047_tabblock10.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> clay_county_blocks
+head(clay_county_blocks)
+clay_county_blocks                     %>%
+  ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("clay_county_blocks")
+```
+
+
+```{r read-miami-county}
+file_name <- "tl_2020_20121_tabblock10.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> miami_county_blocks
+head(miami_county_blocks)
+miami_county_blocks                    %>%
+  ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("miami_county_blocks")
+```
+
+
+
+```{r combine-blocks}
+johnson_county_blocks                   %>%
+  bind_rows(leavenworth_county_blocks)  %>%
+  bind_rows(wyandotte_county_blocks)    %>%
+  bind_rows(jackson_county_blocks)      %>%
+  bind_rows(cass_county_blocks)         %>%
+  bind_rows(clay_county_blocks)         %>%
+  bind_rows(miami_county_blocks)       -> combine_blocks
+combine_blocks                          %>%
+   ggplot()                              +
+      geom_sf(aes())                     +
+      ggtitle("all_county_blocks")  
+  
+```
+
+### Community districts
+
+This shapefile, Community_District, was provided by Neal Wilson. The various functions described in the US counties shapefiles section will be used here.
+
+```{r read-Community-Districts}
+file_name <- "Community_District.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> Community_Districts
+head(Community_Districts)
+Community_Districts                    %>%
+  ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("Community_Districts")
+Community_Districts %>%
+  st_transform(crs=st_crs(combine_blocks)) -> cd
+```
+
+
+```{r intersect-combine-blocks-Community-Districts}
+for (i in 1:2) { 
+combine_blocks                          %>%
+  st_intersects( cd[i,], sparse=FALSE)  -> intersect_matrix
+  total_area  <- st_area(combine_blocks[intersect_matrix,]) / 1000000
+  intersect_area <- st_area(st_intersection(combine_blocks[intersect_matrix,],cd[i,])) / 1000000 
+  print(intersect_area/total_area)
+ combine_blocks[intersect_matrix,]      %>%
+ ggplot(aes())                            +
+        geom_sf(fill=NA, col="darkgreen") +
+        geom_sf(data=cd[i, ], fill=NA, col="darkred") +
+        ggtitle("combine_blocks-Community-Districts") -> map
+  print(map)}
+```

@@ -1,0 +1,78 @@
+---
+data_dictionary: tl_2021_xx_tract.zip
+
+authors: Satya Golla and Steve Simon
+
+copyright:  
+  Not directly stated, but this file should
+  be in the public domain.
+
+creation_date: Unknown
+
+description:  
+  Shapefiles for every tract in state "xx".
+
+documentation:
+  https://www2.census.gov/geo/pdfs/maps-data/data/tiger/tgrshp2019/TGRSHP2019_TechDoc.pdf
+
+download: 
+  https://www2.census.gov/geo/tiger/TIGER2021/TRACT/
+
+format: 
+  proprietary: Shapefile (zip)
+
+  missing-value-code: not needed
+
+  rows: varies by state
+
+  columns: 13
+
+source:
+  U.S. Census Bureau
+
+vars:
+  STATEFP:
+    label: State FIPS code
+    scale: two digit integer with leading zero
+
+  COUNTYFP: 
+    label: County FIPS code
+    scale: three digit integer with leading zeros
+ 
+  TRACTCE:
+    label: Tract number
+    scale: six digit integer with leading zeros
+
+  GEOID: 
+    label: (Geographic ID) Tract identifier; a concatenation of state, county and tract FIPS code
+    scale: eleven digit integer with leading zeros
+
+  NAME:
+    label: Tract name
+    
+  NAMELSAD: 
+    label: Longer tract name
+    
+  MTFCC:
+    label: MAF/TIGER feature class code (G5020) 
+    
+  FUNCSTAT:
+    label: Current functional status 
+    
+  ALAND:
+    label: Land area
+    unit: square meters                   
+  
+  WATER:
+    label: Water area
+    unit: square meters
+    
+  INTPTLAT:
+    label: Latitude of an interior point
+    
+  INTPTLON:
+    label: Longitude of an interior point
+    
+  geometry:
+    label: Simple feature (sf) geometry
+---

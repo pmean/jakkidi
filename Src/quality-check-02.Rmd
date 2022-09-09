@@ -1,0 +1,102 @@
+---
+title: "Quality check 02, Partial intersections of blocks and community districts"
+author: "Satya Golla and Steve Simon"
+date: "Created 2022-03-14"
+output: html_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding,
+  output_dir = "../results", output_format = "all") })  
+---
+
+This program examines blocks that only partially intersect with community districts.
+
+### General information
+
+The starting point for downloading most Census shapefiles is [here][c_general]. You can find more about the census redistricting files [here][c_redistricting]. 
+
+It helps to know the FIPS (Federal Information Processing System) codes for Kansas (20) and Missouri (29).
+
+The important counties for this program are
+
+Cass County, MO (29037)
+Clay County, MO (29047)
+Jackson County, MO (29095)
+Johnson County, KS (20091)
+Leavenworth County, KS (20103)
+Platte County, MO (29165)
+Wyandotte County, KS (20209)
+
+### Load relevant files
+
+```{r setup}
+library(sf)
+library(tidyverse)
+library(magrittr)
+path_name <- "../data/"
+load(paste0(path_name, "cd-weights", ".RData"))
+glimpse(bg_counts)
+glimpse(bl_counts)
+glimpse(bl_list)
+load(paste0(path_name, "bl", ".RData"))
+glimpse(bl)
+load(paste0(path_name, "cd", ".RData"))
+glimpse(cd)
+```
+
+### List blocks that are split between communities
+
+```{r list}
+bl_counts                              %>%
+  mutate(dev=abs(bl_prop_in-0.5))      %>%
+  arrange(dev)                          -> dev
+dev                                    %>%
+  print(n=20)
+```
+
+### Map split blocks
+
+```{r map}
+for (i in 1:50) {
+  cd                                   %>%
+    filter(cd_id==dev$cd_id[i])         -> cd_i
+  bl                                   %>%
+    filter(bl_id==dev$bl_id[i])         -> bl_i
+  ti <- paste0(
+    cd_i$cd_name, ", ",
+    bl_i$bl_name, ", ",
+    round(100*dev$prop_in[i]), "%")
+  cd_i                                 %>%
+    ggplot(aes())                       +
+      geom_sf(
+        fill="white", 
+        color="darkgreen")              +
+      # ggtitle(ti)                       +
+      geom_sf(
+        data=bl_i,
+        aes(), 
+        fill=NA,
+        color="darkred")                -> map_i
+  plot(map_i)
+  bl_counts                            %>%
+    filter(cd_id==dev$cd_id[i])        %>%
+    filter(bl_id==dev$bl_id[i])         -> bl_counts_i
+  bl_counts_i                          %>%
+    ggplot(aes())                       +
+      geom_sf(
+        fill="white",
+        color="darkgreen")              +
+      ggtitle("Closeup view")           +
+      geom_sf(
+        data=bl_i,
+        aes(), 
+        fill=NA,
+        color="darkred")                -> closeup_i
+  # plot(closeup_i)
+}
+```
+
+<!---Key census links go here--->
+
+[c_general]: https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html
+
+[c_redistricting]: https://www.census.gov/programs-surveys/decennial-census/about/rdo/summary-files.html

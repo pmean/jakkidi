@@ -1,0 +1,11 @@
+---
+title: "Calculate neighborhood weights"
+author: "Satya Golla and Steve Simon"
+date: "Created 2022-03-11"
+output: html_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding,
+  output_dir = "../results", output_format = "all") })
+---
+
+# Use code similar to calculate-cd-weights

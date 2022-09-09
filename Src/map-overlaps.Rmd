@@ -1,0 +1,147 @@
+---
+title: "Map overlapping shapefiles"
+author: "Satya Golla and Steve Simon"
+date: "Created 2022-03-11"
+output: html_document
+---
+
+This program will compare various shapefiles for counties, public use microdata areas, census tracts, census block groups, census blocks, zip code tabulation areas, community districts, and neighborhoods. It will produce a map showing overlaps of different shapefiles. In addition, the program will compute the area of each shapefile and what percentage of that area lies inside or outside another shapefile.
+
+### General information
+
+The starting point for downloading most Census shapefiles is [here][c_general]. The ftp site is a bit more difficult to navigate, but leads you directly to the files that you want. 
+
+It helps to know the FIPS (Federal Information Processing System) codes for Kansas (20) and Missouri (29).
+
+The important counties for this program are
+
+Cass County, MO (29037)
+Clay County, MO (29047)
+Jackson County, MO (29095)
+Johnson County, KS (20091)
+Leavenworth County, KS (20103)
+Platte County, MO (29165)
+Wyandotte County, KS (20209)
+
+The community district and neighborhood shapefiles are documented in an email from Neal Wilson dated 2022-03-03. You can find a pdf file of that email in the doc folder.
+
+### Load relevant files
+
+```{r setup}
+library(sf)
+library(tidyverse)
+library(magrittr)
+path_name <- "../data/"
+```
+
+```{r functions}
+map_overlap <- function(shape1, shape2) {
+  sb <- st_intersects(shape1, shape2, sparse=FALSE)
+
+  shape2                              %>%
+    filter(as.vector(sb))              -> shape2_sb
+
+  names <- paste0(c(shape1$label, shape2_sb$label), collapse=", ")
+  shape2_in <- st_intersection(shape1, shape2_sb)
+
+  shape1                                %>%
+    st_area                             %>%
+    divide_by(1e6)                      %>%
+    as.numeric                           -> a1
+
+  shape2_sb                             %>%
+    st_area                             %>%
+    divide_by(1e6)                      %>%
+    as.numeric                           -> a2
+  
+  shape2_in                             %>%
+    st_area                             %>%
+    divide_by(1e6)                      %>%
+    as.numeric                           -> a2_in
+  
+  shape2_sb$label                       %>%
+    data.frame                          %>%
+    mutate(area1=round(a1, 2))          %>%
+    mutate(area2=round(a2, 2))          %>%
+    mutate(area2_in=round(a2_in, 2))    %>%
+    mutate(pct1=round(100*a2_in/a1, 2)) %>%
+    mutate(pct2=round(100*a2_in/a2, 2)) %>%
+    print
+
+  fill_color <- case_when(
+    a2_in/a2 > 0.99~"pink",
+    a2_in/a2 < 0.01~"lightgreen",
+    TRUE~"lightblue")
+  shape2_sb %>%
+    ggplot(aes())                        +
+    geom_sf(fill=fill_color, col="darkgreen")    +
+    ggtitle(names)                       +
+    geom_sf(
+      data=shape1,
+      fill=NA,
+      size=1.2,
+      col="darkred")                  
+}
+```
+
+### Intersect counties with community districts
+
+```{r county-cd}
+load(paste0(path_name, "co", ".RData"))
+load(paste0(path_name, "cd", ".RData"))
+n <- 1:dim(cd)[1]
+n <- 3
+for (i in n) {
+  map_overlap(cd[i, ], county) %>% print
+}
+```
+
+### Intersect neighborhoods with community districts
+
+```{r nbd-cd}
+load(paste0(path_name, "nbd", ".RData"))
+n <- 1:dim(cd)[1]
+n <- 3
+for (i in n) {
+  map_overlap(cd[i, ], nbd) %>% print
+}
+```
+
+### Intersect community districts with census blocks
+
+```{r cd-block}
+load(paste0(path_name, "bl", ".RData"))
+n <- 1:dim(cd)[1]
+n <- 1:3
+for (i in n) {
+  map_overlap(cd[i, ], bl) %>% print
+}
+```
+
+<!---Key census links go here--->
+
+[r_sf]: https://r-spatial.github.io/sf/
+
+[r read_acs]: https://cran.r-project.org/package=acs
+
+[c_general]: https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html
+
+[c_counties]: https://www2.census.gov/geo/tiger/TIGER2021/COUNTY/tl_2021_us_county.zip
+[c_puma_ks]: https://www2.census.gov/geo/tiger/TIGER2021/PUMA/tl_2021_20_puma10.zip
+[c_puma_mo]:https://www2.census.gov/geo/tiger/TIGER2021/PUMA/tl_2021_29_puma10.zip
+[c_tract_ks]: https://www2.census.gov/geo/tiger/TIGER2021/TRACT/tl_2021_20_tract.zip
+[c_tract_mo]: https://www2.census.gov/geo/tiger/TIGER2021/TRACT/tl_2021_29_tract.zip
+[c_bg]: https://www2.census.gov/geo/tiger/TIGER2021/BG/
+[c_bg_ks]: https://www2.census.gov/geo/tiger/TIGER2021/BG/tl_2021_20_bg.zip
+[c_bg_mo]: https://www2.census.gov/geo/tiger/TIGER2021/BG/tl_2021_29_bg.zip
+
+Insert links for census block groups and census blocks.
+
+[c_redistricting]: https://www.census.gov/programs-surveys/decennial-census/about/rdo/summary-files.html
+
+[c_help]: https://www.census.gov/data/academy/courses/2020-census-redistricting-data.html
+
+[c_redistricting_ks]: https://www2.census.gov/programs-surveys/decennial/2020/data/01-Redistricting_File--PL_94-171/Kansas/ks2020.pl.zip
+[c_redistricting_mo]: https://www2.census.gov/programs-surveys/decennial/2020/data/01-Redistricting_File--PL_94-171/Missouri/mo2020.pl.zip
+
+[c_r_code]: https://www2.census.gov/programs-surveys/decennial/rdo/about/2020-census-program/Phase3/SupportMaterials/2020PL_R_import_scripts.zip

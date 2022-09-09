@@ -1,0 +1,73 @@
+---
+title: "Store county information"
+author: "Satya Golla and Steve Simon"
+date: "Created 2022-03-14"
+output: html_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding,
+  output_dir = "../results", output_format = "all") })  
+---
+
+The important counties for this program are
+
+Cass County, MO (29037)
+Clay County, MO (29047)
+Jackson County, MO (29095)
+Johnson County, KS (20091)
+Leavenworth County, KS (20103)
+Miami County, KS (20121)
+Wyandotte County, KS (20209)
+
+```{r setup}
+library(sf)
+library(tidyverse)
+```
+
+```{r read-county}
+path_name <- "../Data"
+file_name <- "co/tl_2021_us_county.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> all_counties
+head(all_counties)
+all_counties                           %>%
+   filter(STATEFP==20)                 %>% 
+   ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("ks-counties")
+all_counties                           %>%
+   filter(STATEFP==29)                 %>% 
+   ggplot()                             +
+      geom_sf(aes())                    +
+      ggtitle("mo-counties")
+all_counties                           %>%
+   filter(STATEFP==20|STATEFP==29)      -> co
+co                                     %>% 
+   ggplot()                             +
+      geom_sf(aes())                    +
+      ggtitle("mo-ks-counties")        
+```
+
+Refer to the data dictionary, county-data-dictionary.yaml for information about where to find this data and what all the variables represent.
+
+This program will read in census county files and store them in an RData file for later use.
+
+### Rename variables
+
+For simplicity, we reduce the number of variables and keep only those needed for later analyses. The variables in the reduced dataset are
+
++ co_id
++ co_name
++ co_area
++ geometry
+
+
+
+### Store as an RData file
+
+Placing the file in an RData format will speed up future use of this file.
+
+```{r save}
+save(co, file="../Data/co.RData")
+```
+

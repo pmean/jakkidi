@@ -1,0 +1,225 @@
+---
+title: "Store block information"
+author: "Satya Golla and Steve Simon"
+date: "Created 2022-03-12"
+output: html_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding,
+  output_dir = "../results", output_format = "all") })  
+---
+
+This program will read in census shapefiles for census blocks, convert them into the simple features (sf) format, and store the results for later use.
+
+### General information
+
+The starting point for downloading most Census shapefiles is [here][c_general]. The ftp site is a bit more difficult to navigate, but leads you directly to the files that you want. 
+
+It helps to know the FIPS (Federal Information Processing System) codes for Kansas (20) and Missouri (29).
+
+Files with a postfix of "20" either in the filename or among some of the variable names indicates that the data or shapefile is from the 2020 Census. A postfix of "10" indicates that the data or shapefile is from the 2010 Census.
+
+The important counties for this program are
+
+Cass County, MO (29037)
+Clay County, MO (29047)
+Jackson County, MO (29095)
+Johnson County, KS (20091)
+Leavenworth County, KS (20103)
+Platte County, MO (29165)
+Wyandotte County, KS (20209)
+
+Some of the variables in the shape files are rather cryptic. An explanation of MTFCC20 appears [here][mtfcc].
+
+### US census blocks
+
+A census block is the smallest geographical unit used by the United States Census Bureau for tabulation of 100-percent data. There are files for census blocks for individual counties in each state.
+
+Use the st_read function from the [sf package][r_sf] to read in the data. You may need to convert the coordinate reference system. That uses the st_crs function, also of the sf package. Census blocks are uniquely identified by a two digit state FIPS code, a three digit county FIPS code, a six digit tract code, and a four digit block code. These are combined into a fifteen digit code, GEOID.
+
+### Read block shapefiles for each county
+
+```{r setup}
+library(sf)
+library(tidyverse)
+path_name <- "../data"
+```
+
+### Johnson County, KS (20091)
+
+```{r read-johnson-county}
+file_name <- "bl/tl_2020_20091_tabblock20.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)       -> s20091
+glimpse(s20091)
+s20091                                 %>%
+   ggplot()                             +
+      geom_sf(aes())                    +
+      ggtitle(file_name)
+```
+
+
+### Leavenworth County, KS (20103)
+
+```{r read-leavenworth-county}
+file_name <- "bl/tl_2020_20103_tabblock20.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)       -> s20103
+glimpse(s20103)
+s20103                                 %>%
+   ggplot()                             +
+      geom_sf(aes())                    +
+      ggtitle(file_name)
+```
+
+### Miami County, KS (20121)
+
+Miami County was included in earlier programs, but it is not needed for any of the work envisioned in this project.
+
+### Wyandotte County, KS (20209)
+
+```{r read-wyandotte-county}
+file_name <- "bl/tl_2020_20209_tabblock20.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)       -> s20209
+glimpse(s20209)
+s20209                                 %>%
+   ggplot()                             +
+      geom_sf(aes())                    +
+      ggtitle(file_name)
+```
+
+### Cass County, MO (29037)
+
+```{r read-cass-county}
+file_name <- "bl/tl_2020_29037_tabblock20.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)       -> s29037
+glimpse(s29037)
+s29037                                 %>%
+   ggplot()                             +
+      geom_sf(aes())                    +
+      ggtitle(file_name)
+```
+
+### Clay County, MO (29047)
+
+```{r read-clay-county}
+file_name <- "bl/tl_2020_29047_tabblock20.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)       -> s29047
+glimpse(s29047)
+s29047                                 %>%
+   ggplot()                             +
+      geom_sf(aes())                    +
+      ggtitle(file_name)
+```
+
+### Jackson County, MO (29095)
+
+```{r read-jackson-county}
+file_name <- "bl/tl_2020_29095_tabblock20.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)       -> s29095
+glimpse(s29095)
+s29095                                 %>%
+   ggplot()                             +
+      geom_sf(aes())                    +
+      ggtitle(file_name)
+```
+
+
+
+### Platte County, MO (29165)
+
+```{r read-platte-county}
+file_name <- "bl/tl_2020_29165_tabblock20.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)       -> s29165
+glimpse(s29165)
+s29165                                 %>%
+   ggplot()                             +
+      geom_sf(aes())                    +
+      ggtitle(file_name)
+```
+
+### Combine files
+
+```{r combine}
+s20091                                 %>%
+  bind_rows(s20103)                    %>%
+  bind_rows(s20209)                    %>%
+  bind_rows(s29037)                    %>%
+  bind_rows(s29047)                    %>%
+  bind_rows(s29095)                    %>%
+  bind_rows(s29165)                     -> bl
+```
+
+### Rename variables
+
+```{r rename}
+bl                                     %>%
+  mutate(bl_id=substr(GEOID20, 1, 15)) %>%
+  rename(bl_name=NAME20)               %>%
+  mutate(
+    bl_area=
+      as.numeric(st_area(bl)))         %>%
+  select(
+    bl_id,
+    bl_name,
+    bl_area,
+    geometry)                           -> bl
+glimpse(bl)
+```
+
+### Store as an RData file
+
+Placing the file in an RData format will speed up future use of this file.
+
+```{r save}
+save(bl, file="../data/bl.RData")
+```
+
+An alternate set of shape files appear under the names
+
++ TIGER2020/TABBLOCK/tl_2020_xx_tabblock10.zip
+
+These are files from the 2010 Census.
+
+
+<!---Key census links go here--->
+
+[r_sf]: https://r-spatial.github.io/sf/
+
+[r read_acs]: https://cran.r-project.org/package=acs
+
+[c_general]: https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html
+
+[c_counties]: https://www2.census.gov/geo/tiger/TIGER2021/COUNTY/tl_2021_us_county.zip
+[c_puma_ks]: https://www2.census.gov/geo/tiger/TIGER2021/PUMA/tl_2021_20_puma10.zip
+[c_puma_mo]:https://www2.census.gov/geo/tiger/TIGER2021/PUMA/tl_2021_29_puma10.zip
+[c_tract_ks]: https://www2.census.gov/geo/tiger/TIGER2021/TRACT/tl_2021_20_tract.zip
+[c_tract_mo]: https://www2.census.gov/geo/tiger/TIGER2021/TRACT/tl_2021_29_tract.zip
+[c_bg]: https://www2.census.gov/geo/tiger/TIGER2021/BG/
+[c_bg_ks]: https://www2.census.gov/geo/tiger/TIGER2021/BG/tl_2021_20_bg.zip
+[c_bg_mo]: https://www2.census.gov/geo/tiger/TIGER2021/BG/tl_2021_29_bg.zip
+
+Insert links for census block groups and census blocks.
+
+[c_redistricting]: https://www.census.gov/programs-surveys/decennial-census/about/rdo/summary-files.html
+
+[c_help]: https://www.census.gov/data/academy/courses/2020-census-redistricting-data.html
+
+[c_redistricting_ks]: https://www2.census.gov/programs-surveys/decennial/2020/data/01-Redistricting_File--PL_94-171/Kansas/ks2020.pl.zip
+[c_redistricting_mo]: https://www2.census.gov/programs-surveys/decennial/2020/data/01-Redistricting_File--PL_94-171/Missouri/mo2020.pl.zip
+
+[c_r_code]: https://www2.census.gov/programs-surveys/decennial/rdo/about/2020-census-program/Phase3/SupportMaterials/2020PL_R_import_scripts.zip
+
+[mtfcc]: https://www2.census.gov/geo/pdfs/maps-data/data/tiger/tgrshp2009/TGRSHP09AF.pdf
+

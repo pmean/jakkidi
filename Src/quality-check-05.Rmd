@@ -1,0 +1,101 @@
+---
+title: "Quality check 05, Looking for consistencies in ACS data"
+author: "Satya Golla and Steve Simon"
+date: "Created 2022-04-11"
+output: html_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding,
+  output_dir = "../results", output_format = "all") })  
+---
+
+### Setup
+
+```{r setup}
+library(sf)
+library(tidycensus)
+library(tidyverse)
+path_name <- "../data"
+```
+
+
+### Get ACS data
+
++ Key counties
+  + Johnson County, KS (20091)
+  + Leavenworth County, KS (20103)
+  + Wyandotte County, KS (20209)
+  + Cass County, MO (29037)
+  + Clay County, MO (29047)
+  + Jackson County, MO (29095)
+  + Platte County, MO (29165)
+
+```{r get-acs-units}
+units_list <- c(
+  "B25001_001",
+  "B25002_001",
+  "B25002_002",
+  "B25002_003",
+  "B25003_001",
+  "B25004_001")
+acs1 <- get_acs(
+  geography="block group", 
+  variables=units_list,
+  state="KS",
+  county=c("91","103", "209"),
+  geometry=FALSE, 
+  cache_table=TRUE,
+  year=2020)
+glimpse(acs1)
+
+acs2 <- get_acs(
+  geography="block group", 
+  variables=units_list,
+  state="MO",
+  county=c("37","47", "95", "165"),
+  geometry=FALSE, 
+  cache_table=TRUE,
+  year=2020)
+glimpse(acs2)
+
+acs1                                   %>%
+  bind_rows(acs2)                      %>%
+  rename(bg_id=GEOID)                  %>%
+  select(-NAME)                         -> acs_units
+print(acs_units, n=50)
+```
+
+```{r get-acs-people}
+people_list <- c(
+  "B01001_001",
+  "B01003_001",
+  "B02001_001")
+acs1 <- get_acs(
+  geography="block group", 
+  variables=people_list,
+  state="KS",
+  county=c("91","103", "209"),
+  geometry=FALSE, 
+  cache_table=TRUE,
+  year=2017)
+glimpse(acs1)
+
+acs2 <- get_acs(
+  geography="block group", 
+  variables=people_list,
+  state="MO",
+  county=c("37","47", "95", "165"),
+  geometry=FALSE, 
+  cache_table=TRUE,
+  year=2017)
+glimpse(acs2)
+
+acs1                                   %>%
+  bind_rows(acs2)                      %>%
+  rename(bg_id=GEOID)                  %>%
+  select(-NAME)                         -> acs_people
+print(acs_people, n=50)
+```
+
+<!---Key census links go here--->
+
+[sumlev]: https://www2.census.gov/programs-surveys/decennial/rdo/about/2020-census-program/Phase3/SupportMaterials/FrequentSummaryLevels.pdf

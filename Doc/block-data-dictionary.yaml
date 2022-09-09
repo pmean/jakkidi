@@ -1,0 +1,96 @@
+---
+data_dictionary: tl_2020_xxxxx_tabblock20.zip
+
+authors: Satya Golla and Steve Simon
+
+copyright:  
+  Not directly stated, but this file should
+  be in the public domain.
+
+creation_date: Unknown
+
+description:  
+  Shapefiles for every blocks for every county
+  in the United States. Replace xxxxx with the
+  FIPS code for each county.
+
+download: 
+  https://www2.census.gov/geo/tiger/TIGER2020PL/STATE/20_KANSAS/20091/tl_2020_20091_tabblock20.zip
+  https://www2.census.gov/geo/tiger/TIGER2020PL/STATE/20_KANSAS/20103/tl_2020_20103_tabblock20.zip
+  https://www2.census.gov/geo/tiger/TIGER2020PL/STATE/20_KANSAS/20209/tl_2020_20209_tabblock20.zip
+  https://www2.census.gov/geo/tiger/TIGER2020PL/STATE/29_MISSOURI/29037/tl_2020_29037_tabblock20.zip
+  https://www2.census.gov/geo/tiger/TIGER2020PL/STATE/29_MISSOURI/29047/tl_2020_29047_tabblock20.zip
+  https://www2.census.gov/geo/tiger/TIGER2020PL/STATE/29_MISSOURI/29095/tl_2020_29095_tabblock20.zip
+  
+format: 
+  proprietary: Shapefile (zip)
+
+  missing-value-code: not needed
+
+  rows: varies by county
+
+  columns: 15
+
+source:
+  U.S. Census Bureau
+  https://www.census.gov/
+
+vars:
+  STATEFP20:
+    label: State FIPS code
+    scale: two digit integer with leading zero
+
+  COUNTYFP20: 
+    label: County FIPS code
+    scale: three digit integer with leading zeros
+
+  TRACTCE20: 
+    label: Census tract number
+    scale: six digit integer with leading zeros
+    
+  BLOCKCE20: 
+    label: Census block number
+    scale: four digit integer with leading zeros
+
+  GEOID20: 
+    label: Geographic ID
+    scale: fifteen digit integer with leading zeros
+    
+  NAME20:
+    label: Census block
+    scale: Alphanumeric block name
+    
+  MTFCC20: 
+    label: MAF/TIGER feature class code (G2200)
+    scale: five digit 
+    values: https://www2.census.gov/geo/pdfs/maps-data/data/tiger/tgrshp2020/TGRSHP2020_TechDoc_E.pdf
+    
+  UR20:
+    label: 2020 Census urban/rural indicator(2020 Urban Areas are not yet defined)
+    
+  UACE20:
+    label: 2020 Census urban area code (2020 Urban Areas are not yet defined)
+    
+  UATYPE20:
+    label: 2020 Census urban area type(2020 Urban Areas are not yet defined)
+    
+  FUNCSTAT20:
+    label: 2020 Census functional status
+    values: Joint-use areas are identified uniquely by MTFCC G2170. An “A” in the functional status
+            (FUNCSTAT) field identifies federal AIR/ORTL joint-use areas, while an “S” in the field represents
+            joint-use OTSAs
+  
+  ALAND:
+    label: Land area
+    unit: square meters
+  
+  WATER:
+    label: Water area
+    unit: square meters
+    
+  INTPTLAT:
+    label: Latitude of an interior point
+    
+  INTPTLON:
+    label: Longitude of an interior point
+---

@@ -1,0 +1,341 @@
+---
+title: "Quality check 04, Summing block data to block group level"
+author: "Satya Golla and Steve Simon"
+date: "Created 2022-04-02"
+output: html_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding,
+  output_dir = "../results", output_format = "all") })  
+---
+
+Redistricing data has information about Census blocks (SUMLEV=750), block groups (SUMLEV=150), Census tracts (SUMLEV=140) and counties (SUMLEV=050).
+
+Part 1: Do the POP100 and HU100 values sum up properly from the lowest level of the Census hierarchy to higher levels?
+
+Part 2: Do the totals computed in calculate-cd-weights.Rmd match the numbers from the Census?
+
+Part 3: Do the totals computed in calculate-cd-weights approximately match the numbers from the ACS?
+
+For more information, see [this pdf file][sumlev].
+
+## Preliminary code
+
+### Setup
+
+```{r setup}
+library(sf)
+library(tidycensus)
+library(tidyverse)
+path_name <- "../data"
+vnames <- c(
+  "FILEID", 
+  "STUSAB", 
+  "SUMLEV", 
+  "GEOVAR", 
+  "GEOCOMP", 
+  "CHARITER", 
+  "CIFSN", 
+  "LOGRECNO", 
+  "GEOID", 
+  "GEOCODE",
+  "REGION",
+  "DIVISION",
+  "STATE",
+  "STATENS",
+  "COUNTY",
+  "COUNTYCC",
+  "COUNTYNS",
+  "COUSUB",
+  "COUSUBCC",
+  "COUSUBNS",
+  "SUBMCD",
+  "SUBMCDCC",
+  "SUBMCDNS",
+  "ESTATE",
+  "ESTATECC",
+  "ESTATENS", 
+  "CONCIT",
+  "CONCITCC",
+  "CONCITNS",
+  "PLACE",
+  "PLACECC",
+  "PLACENS",
+  "TRACT",
+  "BLKGRP",
+  "BLOCK", 
+  "AIANHH",
+  "AIHHTLI",
+  "AIANHHFP",
+  "AIANHHCC",
+  "AIANHHNS",
+  "AITS",
+  "AITSFP",
+  "AITSCC",
+  "AITSNS",
+  "TTRACT",
+  "TBLKGRP",
+  "ANRC",
+  "ANRCCC",
+  "ANRCNS",
+  "CBSA",
+  "MEMI",
+  "CSA",
+  "METDIV",
+  "NECTA",
+  "NMEMI",
+  "CNECTA",
+  "NECTADIV",
+  "CBSAPCI",
+  "NECTAPCI",
+  "UA",
+  "UATYPE",
+  "UR",
+  "CD116",
+  "CD118",
+  "CD119", 
+  "CD120", 
+  "CD121", 
+  "SLDU18", 
+  "SLDU22", 
+  "SLDU24", 
+  "SLDU26", 
+  "SLDU28", 
+  "SLDL18", 
+  "SLDL22",
+  "SLDL24",
+  "SLDL26",
+  "SLDL28",
+  "VTD",
+  "VTDI",
+  "ZCTA",
+  "SDELM",
+  "SDSEC",
+  "SDUNI",
+  "PUMA",
+  "AREALAND",
+  "AREAWATR",
+  "BASENAME",
+  "NAME",
+  "FUNCSTAT",
+  "GCUNI",
+  "POP100",
+  "HU100",
+  "INTPTLAT",
+  "INTPTLON",
+  "LSADC",
+  "PARTFLAG",
+  "UGA")
+```
+
+### Read Kansas redistricting files
+
+```{r read-ks}
+file_name <- "red/ksgeo2020.pl"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  read.delim(
+    header=FALSE, 
+    colClasses="character", 
+    sep="|")                           -> red1
+names(red1) <- vnames
+```
+
+### Read Missouri redistricting files
+
+```{r read-mo}
+file_name <- "red/mogeo2020.pl"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  read.delim(
+    header=FALSE, 
+    colClasses="character", 
+    sep="|")                           -> red2
+names(red2) <- vnames
+```
+
+## Part 1.
+
+### Combine and extract block information
+
+```{r combine}
+red1                                   %>%
+  bind_rows(red2)                      %>%
+  mutate(POP100=as.numeric(POP100))    %>%
+  mutate(HU100=as.numeric(HU100))       -> red
+
+red                                    %>%
+  filter(SUMLEV=="750")                %>%
+  rename(bl_id=GEOCODE)                %>%
+  rename(bl_people=POP100)             %>%
+  rename(bl_units=HU100)       %>%
+  mutate(bg_id=str_sub(bl_id, 1, 12))  %>%
+  select(
+    bl_id, 
+    bg_id, 
+    bl_people, 
+    bl_units)                           -> red_bl
+```
+
+### Extract block group information
+
+```{r extract-bg}
+red                                    %>%
+  filter(SUMLEV=="150")                %>%
+  rename(bg_id=GEOCODE)                %>%
+  rename(bg_people=POP100)             %>%
+  rename(bg_units=HU100)               %>%
+  select(
+    bg_id, 
+    bg_people, 
+    bg_units)                           -> red_bg
+```
+
+### Compare block totals to block groups
+
+```{r compare}
+red_bl                                 %>%
+  group_by(bg_id)                      %>%
+  summarize(
+    bl_people=sum(bl_people),
+    bl_units=
+      sum(bl_units))                   %>%
+  full_join(red_bg, by="bg_id")        %>%
+  mutate(
+    diff_people=bl_people-bg_people)   %>%
+  mutate(
+    diff_units=
+      bl_units - 
+      bg_units)                         -> red_diff
+head(red_diff[ , -1])
+table(red_diff$diff_people)
+table(red_diff$diff_units)
+```
+
+## Part 2
+
+### Read cd-weights.RData
+
+```{r cd-weights}
+load("../Data/cd-weights.RData")
+glimpse(bg_counts)
+glimpse(bg_list)
+glimpse(bl_counts)
+glimpse(bl_list)
+```
+
+### Compare to redistricting files
+
+```{r compare-bg-counts}
+head(red_bg)
+head(bg_counts)
+red_bg                                 %>%
+  inner_join(bg_counts, by="bg_id")    %>%
+  mutate(diff_people=bg_people-people) %>%
+  mutate(diff_units=bg_units-units)     -> diff_bg
+head(diff_bg[ , -1])
+table(diff_bg$diff_people)
+table(diff_bg$diff_units)
+```
+
+## Part 3.
+
+### Get ACS data
+
++ Key counties
+  + Johnson County, KS (20091)
+  + Leavenworth County, KS (20103)
+  + Wyandotte County, KS (20209)
+  + Cass County, MO (29037)
+  + Clay County, MO (29047)
+  + Jackson County, MO (29095)
+  + Platte County, MO (29165)
+
+```{r get-acs-units}
+units_list <- c(
+  "B25001_001",
+  "B25002_001",
+  "B25002_002",
+  "B25002_003",
+  "B25003_001",
+  "B25004_001")
+county_list <- c(
+  "20091",
+  "20103",
+  "20209",
+  "29037",
+  "29047",
+  "29095",
+  "29165")
+acs1 <- get_acs(
+  geography="block group", 
+  variables="B25002_001",
+  state="KS",
+  county=c("91","103", "209"),
+  geometry=FALSE, 
+  cache_table=TRUE,
+  year=2020)
+glimpse(acs1)
+
+acs2 <- get_acs(
+  geography="block group", 
+  variables="B25002_001",
+  state="MO",
+  county=c("37","47", "95", "165"),
+  geometry=FALSE, 
+  cache_table=TRUE,
+  year=2020)
+glimpse(acs2)
+
+acs1                                   %>%
+  bind_rows(acs2)                      %>%
+  rename(bg_id=GEOID)                  %>%
+  select(-NAME)                        %>%
+  inner_join(bg_counts, by="bg_id")    %>%
+  select(
+    bg_id,
+    variable,
+    estimate,
+    moe,
+    units)                             %>%
+  mutate(a=abs(estimate-units) < moe)  -> acs_bg
+print(acs_bg, n=50)
+```
+
+```{r get-acs-people}
+acs1 <- get_acs(
+  geography="block group", 
+  variables="B01001_001",
+  state="KS",
+  county=c("91","103", "209"),
+  geometry=FALSE, 
+  cache_table=TRUE,
+  year=2020)
+glimpse(acs1)
+
+acs2 <- get_acs(
+  geography="block group", 
+  variables="B01001_001",
+  state="MO",
+  county=c("37","47", "95", "165"),
+  geometry=FALSE, 
+  cache_table=TRUE,
+  year=2020)
+glimpse(acs2)
+
+acs1                                   %>%
+  bind_rows(acs2)                      %>%
+  rename(bg_id=GEOID)                  %>%
+  inner_join(bg_counts, by="bg_id")    %>%
+  select(
+    bg_id,
+    variable,
+    estimate,
+    moe,
+    people)                            %>%
+  mutate(a=abs(estimate-people) < moe)  -> acs_bg
+print(acs_bg, n=50)
+```
+
+<!---Key census links go here--->
+
+[sumlev]: https://www2.census.gov/programs-surveys/decennial/rdo/about/2020-census-program/Phase3/SupportMaterials/FrequentSummaryLevels.pdf

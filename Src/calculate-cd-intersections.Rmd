@@ -1,0 +1,127 @@
+---
+title: "Calculate intersection of blocks and community districts"
+author: "Satya Golla and Steve Simon"
+date: "Created 2022-03-11"
+output: html_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding,
+  output_dir = "../results", output_format = "all") })
+---
+
+This program will calculate which census blocks intersect with which community districts. It relies on information stored in
+
++ tr.RData
++ bg.RData
++ bl.RData
++ cd.RData
+
+### General information
+
+For information about various files, refer to the files that stored the relevant data (e.g., store_block_information.Rmd).
+
+It helps to know the FIPS (Federal Information Processing System) codes for Kansas (20) and Missouri (29).
+
+The important counties for this program are
+
+Cass County, MO (29037)
+Clay County, MO (29047)
+Jackson County, MO (29095)
+Johnson County, KS (20091)
+Leavenworth County, KS (20103)
+Wyandotte County, KS (20209)
+
+### Load relevant files
+
+```{r setup}
+library(sf)
+library(tidyverse)
+library(magrittr)
+path_name <- "../data/"
+load(paste0(path_name, "tr", ".RData"))
+load(paste0(path_name, "bg", ".RData"))
+load(paste0(path_name, "bl", ".RData"))
+load(paste0(path_name, "cd", ".RData"))
+```
+
+### Intersect blocks and community districts
+
+Identify the list of all blocks that partially or completely intersect with any community district. Calculate the block area and add it back to the data frame.
+
+```{r intersect-bl}
+bl                                     %>%
+  st_intersection(cd)                  -> bl_cd_intersection
+
+bl_cd_intersection                     %>%
+  st_area                              %>%
+  as.numeric                           %>%
+  tibble                               %>%
+  set_names("in_area")                 %>%
+  bind_cols(bl_cd_intersection)        %>%
+  mutate(
+    tr_id=str_sub(bl_id, 1, 11))       %>%
+  mutate(
+    bg_id=str_sub(bl_id, 1, 12))       %>%
+  mutate(
+    bl_prop_in=in_area/bl_area)        %>%
+  mutate(
+    bl_prop_in=round(bl_prop_in, 3))   %>%
+  select(
+    tr_id,
+    bg_id,
+    bl_id, 
+    cd_id, 
+    bl_prop_in)                         -> bl_cd_intersection
+```
+
+
+### Intersect block groups and community districts
+
+Identify the list of all block groups that partially or completely intersect with any community district.
+
+```{r intersect-bg}
+bg                                     %>%
+  st_intersection(cd)                   -> bg_cd_intersection
+
+bg_cd_intersection                     %>%
+  st_area                              %>%
+  as.numeric                           %>%
+  tibble                               %>%
+  set_names("in_area")                 %>%
+  bind_cols(bg_cd_intersection)        %>%
+  mutate(bg_prop_in=in_area/bg_area)   %>%
+  select(
+    bg_id,
+    cd_id, 
+    bg_prop_in)                         -> bg_cd_intersection
+```
+
+### Intersect tracts and community districts
+
+Identify the list of all tracts that partially or completely intersect with any community district.
+
+```{r intersect-tr}
+tr                                     %>%
+  st_intersection(cd)                   -> tr_cd_intersection
+
+tr_cd_intersection                     %>%
+  st_area                              %>%
+  as.numeric                           %>%
+  tibble                               %>%
+  set_names("in_area")                 %>%
+  bind_cols(tr_cd_intersection)        %>%
+  mutate(tr_prop_in=in_area/tr_area)   %>%
+  select(
+    tr_id,
+    cd_id, 
+    tr_prop_in)                         -> tr_cd_intersection
+```
+
+### Save the information in an RData file.
+
+```{r save}
+save(
+  bl_cd_intersection,
+  bg_cd_intersection,
+  tr_cd_intersection,
+  file="../Data/cd-intersections.RData")
+```

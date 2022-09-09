@@ -1,0 +1,92 @@
+---
+data_dictionary: tl_2021_us_county.zip
+
+authors: Satya Golla and Steve Simon
+
+copyright:  
+  Not directly stated, but this file should
+  be in the public domain.
+
+creation_date: Unknown
+
+description:  
+  Shapefiles for every county in the United
+  States.
+
+download: 
+  https://www2.census.gov/geo/tiger/TIGER2021/COUNTY/
+
+format: 
+  proprietary: Shapefile (zip)
+
+  missing-value-code: not needed
+
+  rows: 
+
+  columns: 17
+
+source:
+  U.S. Census Bureau
+
+vars:
+  STATEFP:
+    label: State FIPS code
+    scale: two digit integer with leading zero
+
+  COUNTYFP: 
+    label: County FIPS code
+    scale: three digit integer with leading zeros
+  
+  COUNTYNS:
+    label: Current county GNIS code 
+    scale: 
+    
+  GEOID: 
+    label: (Geographic ID) County identifier; a concatenation of Current state
+            FIPS code and county FIPS code 
+    
+  NAME:
+    label: Current county name 
+    
+  NAMELSAD: 
+    label: (Longer county name)Current name and the translated legal/statistical 
+            area description for county
+    
+  LSAD: 
+    label: Current legal/statistical area description code for consolidated city 
+    
+  CLASSFP: 
+    label: Current FIPS class code 
+  
+    
+  MTFCC:
+    label: MAF/TIGER feature class code (G4020) 
+    
+  CSAFP:
+    label: Current combined statistical area code
+    
+  CBSAFP:
+    label: Current metropolitan statistical area/micropolitan statistical 
+            area code 
+    
+  METDIVFP:
+    label: Current metropolitan division code 
+    
+  FUNCSTAT:
+    label: Current functional status 
+    
+  ALAND:
+    label: Land area
+    unit: square meters
+  
+  WATER:
+    label: Water area
+    unit: square meters
+    
+  INTPTLAT:
+    label: Latitude of an interior point
+    
+  INTPTLON:
+    label: Longitude of an interior point
+  chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://www2.census.gov/geo/pdfs/maps-data/data/tiger/tgrshp2019/TGRSHP2019_TechDoc.pdf
+---

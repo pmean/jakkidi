@@ -1,0 +1,75 @@
+---
+title: "Quality check 01, Mismatches"
+author: "Satya Golla and Steve Simon"
+date: "Created 2022-03-14"
+output: html_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding,
+  output_dir = "../results", output_format = "all") })  
+---
+
+This program examines mismatches between census blocks shape files and redistricting files.
+
+### General information
+
+The starting point for downloading most Census shapefiles is [here][c_general]. You can find more about the census redistricting files [here][c_redistricting]. 
+
+It helps to know the FIPS (Federal Information Processing System) codes for Kansas (20) and Missouri (29).
+
+The important counties for this program are
+
+Cass County, MO (29037)
+Clay County, MO (29047)
+Jackson County, MO (29095)
+Johnson County, KS (20091)
+Leavenworth County, KS (20103)
+Platte County, MO (29165)
+Wyandotte County, KS (20209)
+
+### Load relevant files
+
+```{r setup}
+library(sf)
+library(tidyverse)
+library(magrittr)
+path_name <- "../Data/"
+load(paste0(path_name, "bl", ".RData"))
+glimpse(bl)
+load(paste0(path_name, "red", ".RData"))
+glimpse(red)
+```
+
+### Calculate mismatches
+
+Do a full join of bl and red. Mismatches are coded as 
++ m_code=0 perfect match
++ m_code=1 not found in red
++ m_code=2 not found in bl
+  
+  
+
+```{r mismatch}
+bl                                    %>%
+  full_join(red, by=c("bl_id"))       %>%
+  mutate(
+    m_red=
+      as.numeric(is.na(people)))      %>%
+  mutate(
+    m_bl=as.numeric(is.na(bl_name)))  %>%
+  mutate(m_code=m_red+2*m_bl)          -> m
+m %>%
+  group_by(m_code)                    %>%
+  summarize(n=n())                    %>%
+  print
+m                                     %>%
+  filter(m_code > 0)                  %>%
+  print
+```
+
+<!---Key census links go here--->
+
+[c_general]: https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html
+
+[c_redistricting]: https://www.census.gov/programs-surveys/decennial-census/about/rdo/summary-files.html
+
+There are no mismatches.

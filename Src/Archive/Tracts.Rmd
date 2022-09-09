@@ -1,0 +1,118 @@
+---
+title: "Tracts"
+author: "Steve Simon and Satya Golla"
+date: "12/30/2021"
+output: html_document
+---
+
+```{r setup}
+library(sf)
+library(tidyverse)
+```
+
+### Census tracts
+
+A Census tract is a region usually within a single county that contains roughly 4,000 people. There are files for census tracts for [Kansas][c_tract_ks] and [Missouri][c_tract_mo].  The various functions described in the US counties shapefiles section will be used here.
+
+
+```{r read-tract-ks}
+path_name <- "./data"
+file_name <- "tl_2021_20_tract.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> all_tract_ks
+head(all_tract_ks)
+all_tract_ks                           %>%
+     ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("ks-tract")
+```
+
+
+```{r read-tract-mo}
+path_name <- "./data"
+file_name <- "tl_2021_29_tract.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> all_tract_mo
+head(all_tract_mo)
+all_tract_mo                           %>%
+     ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("mo-tract")
+```
+
+
+```{r combine-tracts} 
+all_tract_ks                           %>%
+  bind_rows(all_tract_mo)  -> mo_ks_tracts 
+mo_ks_tracts                           %>%
+ ggplot()                               +
+      geom_sf(aes())                    +
+      ggtitle("mo-ks-tracts")  
+```
+
+variable in the file 
+
++ Variables:
+  +   "STATEFP10"
+  +   "PUMACE10"
+  +   "GEOID10"
+  +   "NAMELSAD10"
+  +   "MTFCC10" 
+  +   "FUNCSTAT10" 
+  +   "ALAND10"
+  +   "AWATER10"
+  +   "INTPTLAT10"
+  +   "INTPTLON10"
+  +   "geometry"
+  
+### Community districts
+
+This shapefile, Community_District, was provided by Neal Wilson. The various functions described in the US counties shapefiles section will be used here.
+
+
+```{r read-Community-Districts}
+file_name <- "Community_District.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      -> Community_Districts
+head(Community_Districts) 
+Community_Districts                  %>%
+  ggplot()                              +
+      geom_sf(aes())                    +
+      ggtitle("Community_Districts")
+Community_Districts %>%
+  st_transform(crs=st_crs(mo_ks_tracts)) -> cd
+```
+
+
+### Calculate intersections
+
+#### Intersection of tracts with community districts
+
+Each community district will reside entirely inside a single county, and it is obvious to anyone familiar with the Kansas City metropolitan area which county is would be, so this is done mostly for the sake of continuity and completeness.
+
+It is important that both the tracts and the community districts use a common coordinate reference system. It is uncelar WHICH coordinate reference system is best, but this is controlled by the st_crs function of the sf package.
+
+The st_intersects function will evaluate to TRUE if two shapefiles intersect. The st_area function will give the area of a shapefile and the st_intersection function will produce a new shapefile from the intersection of two shapefiles.
+
+
+```{r intersect-mo-ks-tracts-Community-Districts}
+for (i in 1:2) { 
+mo_ks_tracts                                   %>%
+  st_intersects( cd[i,], sparse=FALSE) -> intersect_matrix
+  total_area  <- st_area(mo_ks_tracts[intersect_matrix,]) / 1000000
+  intersect_area <- st_area(st_intersection(mo_ks_tracts[intersect_matrix,],cd[i,])) / 1000000 
+  print(intersect_area/total_area)
+  mo_ks_tracts[intersect_matrix,]               %>%
+    ggplot(aes())  +
+      geom_sf(fill=NA, col="darkgreen")      +
+      geom_sf(data = cd[i,], fill=NA, col="darkred")  -> map
+  print(map)}
+```
+
+
+
+
+

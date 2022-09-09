@@ -1,0 +1,66 @@
+---
+title: "Store community information"
+author: "Satya Golla and Steve Simon"
+date: "Created 2022-03-11"
+output: html_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding,
+  output_dir = "../results", output_format = "all") })  
+---
+
+This program will read in shapefiles for community districts in the Kansas City metropolitan area, convert them into the simple features (sf) format, and store the results for later use.
+
+### General information
+
+An email from Neal Wilson dated 2022-03-03 and found in the doc folder outlines some of the details about the origins of this file. It was originally sent in an email dated 2021-10-04.
+
+### Read community district shapefiles
+
+
+```{r setup}
+library(sf)
+library(tidyverse)
+path_name <- "../data"
+```
+
+```{r read}
+file_name <- "cd/Community_District.shp"
+path_name                                %>%
+  paste(file_name, sep="/")              %>%
+  st_read(stringsAsFactors=FALSE)         -> shape1
+head(shape1) 
+shape1                                   %>%
+  ggplot()                                +
+      geom_sf(aes())                      +
+      ggtitle(file_name)
+```
+
+### Align coordinate reference system
+
+Use the same coordinate reference system that is found in the U.S. Census Bureau's shapefiles. The st_zm function removes an unneeded z dimension.
+
+```{r align}
+load("../Data/bl.RData")
+shape1                                   %>%
+  rename(cd_id=CD_ID)                    %>%
+  rename(cd_name=CD_NAME)                %>%
+  mutate(
+    cd_area=
+      as.numeric(st_area(shape1)))       %>%
+  select(
+    cd_id,
+    cd_name,
+    cd_area,
+    geometry)                            %>%
+  st_transform(crs=st_crs(bl))           %>%
+  st_zm                                   -> cd
+glimpse(cd)
+```
+
+### Store as an RData file
+
+Placing the file in an RData format will speed up future use of this file.
+
+```{r store}
+save(cd, file="../data/cd.RData")
+```
