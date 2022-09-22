@@ -50,7 +50,6 @@ Identify the list of all blocks that partially or completely intersect with any 
 ```{r intersect-bl}
 bl                                     %>%
   st_intersection(cd)                  -> bl_cd_intersection
-
 bl_cd_intersection                     %>%
   st_area                              %>%
   as.numeric                           %>%
@@ -81,7 +80,6 @@ Identify the list of all block groups that partially or completely intersect wit
 ```{r intersect-bg}
 bg                                     %>%
   st_intersection(cd)                   -> bg_cd_intersection
-
 bg_cd_intersection                     %>%
   st_area                              %>%
   as.numeric                           %>%
@@ -102,7 +100,6 @@ Identify the list of all tracts that partially or completely intersect with any 
 ```{r intersect-tr}
 tr                                     %>%
   st_intersection(cd)                   -> tr_cd_intersection
-
 tr_cd_intersection                     %>%
   st_area                              %>%
   as.numeric                           %>%

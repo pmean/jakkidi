@@ -373,38 +373,33 @@ pre code {
 an RData file for later use.</p>
 <div id="general-information" class="section level3">
 <h3>General information</h3>
-<p>The starting point for downloading most Census shapefiles is
-[here][c_general]. The ftp site is a bit more difficult to navigate, but
-leads you directly to the files that you want.</p>
-<p>It helps to know the FIPS (Federal Information Processing System)
-codes for Kansas (20) and Missouri (29).</p>
-<p>Files with a postfix of “20” either in the filename or among some of
-the variable names indicates that the data or shapefile is from the 2020
-Census. A postfix of “10” indicates that the data or shapefile is from
-the 2010 Census.</p>
+<p>A census block group is a subdivision of a Census tract. These can be
+further subdivided into Census blocks. Census blocks are uniquely
+identified by a two digit state FIPS code, a three digit county FIPS
+code, a six digit tract code, and a single digit block group code. These
+are combined into a twelve digit code, GEOID.</p>
+<p>The starting point for downloading most Census shapefiles is <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html">here</a>.
+The ftp site is a bit more difficult to navigate, but leads you directly
+to the files that you want.</p>
+<p>There are files for census block groups for <a href="https://www2.census.gov/geo/tiger/TIGER2021/BG/tl_2021_20_bg.zip">Kansas</a>
+and <a href="https://www2.census.gov/geo/tiger/TIGER2021/BG/tl_2021_29_bg.zip">Missouri</a>.</p>
 <p>The important counties for this program are</p>
 <p>Cass County, MO (29037) Clay County, MO (29047) Jackson County, MO
 (29095) Johnson County, KS (20091) Leavenworth County, KS (20103) Platte
 County, MO (29165) Wyandotte County, KS (20209)</p>
-<p>A census block group is a subdivision of a Census tract. These can be
-further subdivided into Census blocks.</p>
-<p>Use the st_read function from the [sf package][r_sf] to read in the
-data. You may need to convert the coordinate reference system. That uses
-the st_crs function, also of the sf package. Census blocks are uniquely
-identified by a two digit state FIPS code, a three digit county FIPS
-code, a six digit tract code, and a single digit block group code. These
-are combined into a twelve digit code, GEOID.</p>
 <pre class="r"><code>library(sf)</code></pre>
-<pre><code>## Linking to GEOS 3.9.1, GDAL 3.2.1, PROJ 7.2.1; sf_use_s2() is TRUE</code></pre>
+<pre><code>## Linking to GEOS 3.9.1, GDAL 3.4.3, PROJ 7.2.1; sf_use_s2() is TRUE</code></pre>
 <pre class="r"><code>library(tidyverse)</code></pre>
-<pre><code>## -- Attaching packages --------------------------------------- tidyverse 1.3.1 --</code></pre>
-<pre><code>## v ggplot2 3.3.5     v purrr   0.3.4
-## v tibble  3.1.6     v dplyr   1.0.8
-## v tidyr   1.2.0     v stringr 1.4.0
-## v readr   2.1.2     v forcats 0.5.1</code></pre>
-<pre><code>## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
-## x dplyr::filter() masks stats::filter()
-## x dplyr::lag()    masks stats::lag()</code></pre>
+<pre><code>## ── Attaching packages
+## ───────────────────────────────────────
+## tidyverse 1.3.2 ──</code></pre>
+<pre><code>## ✔ ggplot2 3.3.6     ✔ purrr   0.3.4
+## ✔ tibble  3.1.8     ✔ dplyr   1.0.9
+## ✔ tidyr   1.2.0     ✔ stringr 1.4.1
+## ✔ readr   2.1.2     ✔ forcats 0.5.2
+## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter() masks stats::filter()
+## ✖ dplyr::lag()    masks stats::lag()</code></pre>
 <pre class="r"><code>path_name &lt;- &quot;../data&quot;</code></pre>
 </div>
 <div id="kansas-block-groups" class="section level3">
@@ -419,7 +414,7 @@ path_name                              %&gt;%
   st_read(stringsAsFactors=FALSE)      %&gt;%
   filter(COUNTYFP %in% co_list)        -&gt; bg_ks</code></pre>
 <pre><code>## Reading layer `tl_2021_20_bg&#39; from data source 
-##   `C:\Users\steve\Documents\git\Satya1\Data\bg\tl_2021_20_bg.shp&#39; 
+##   `C:\Users\VVISM\Desktop\thesis 2\jakkidi\Data\bg\tl_2021_20_bg.shp&#39; 
 ##   using driver `ESRI Shapefile&#39;
 ## Simple feature collection with 2461 features and 12 fields
 ## Geometry type: POLYGON
@@ -429,19 +424,19 @@ path_name                              %&gt;%
 <pre class="r"><code>glimpse(bg_ks)</code></pre>
 <pre><code>## Rows: 689
 ## Columns: 13
-## $ STATEFP  &lt;chr&gt; &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;~
-## $ COUNTYFP &lt;chr&gt; &quot;103&quot;, &quot;103&quot;, &quot;103&quot;, &quot;103&quot;, &quot;103&quot;, &quot;103&quot;, &quot;103&quot;, &quot;103&quot;, &quot;103&quot;~
-## $ TRACTCE  &lt;chr&gt; &quot;981900&quot;, &quot;071400&quot;, &quot;071104&quot;, &quot;071205&quot;, &quot;071204&quot;, &quot;071202&quot;, &quot;~
-## $ BLKGRPCE &lt;chr&gt; &quot;3&quot;, &quot;4&quot;, &quot;1&quot;, &quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;1&quot;, &quot;5&quot;, &quot;3&quot;, &quot;3&quot;, &quot;2&quot;, &quot;4&quot;, &quot;~
-## $ GEOID    &lt;chr&gt; &quot;201039819003&quot;, &quot;201030714004&quot;, &quot;201030711041&quot;, &quot;201030712051~
-## $ NAMELSAD &lt;chr&gt; &quot;Block Group 3&quot;, &quot;Block Group 4&quot;, &quot;Block Group 1&quot;, &quot;Block Gro~
-## $ MTFCC    &lt;chr&gt; &quot;G5030&quot;, &quot;G5030&quot;, &quot;G5030&quot;, &quot;G5030&quot;, &quot;G5030&quot;, &quot;G5030&quot;, &quot;G5030&quot;~
-## $ FUNCSTAT &lt;chr&gt; &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;~
-## $ ALAND    &lt;dbl&gt; 985868, 36558866, 18268375, 25878112, 11390155, 24298756, 822~
-## $ AWATER   &lt;dbl&gt; 0, 74689, 60813, 152425, 68354, 60750, 0, 204048, 133132, 791~
-## $ INTPTLAT &lt;chr&gt; &quot;+39.3392651&quot;, &quot;+39.0295688&quot;, &quot;+39.2137158&quot;, &quot;+39.1794818&quot;, &quot;~
-## $ INTPTLON &lt;chr&gt; &quot;-094.9372468&quot;, &quot;-095.1684564&quot;, &quot;-094.9340523&quot;, &quot;-094.9288073~
-## $ geometry &lt;POLYGON [°]&gt; POLYGON ((-94.94756 39.3373..., POLYGON ((-95.18756 3~</code></pre>
+## $ STATEFP  &lt;chr&gt; &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;…
+## $ COUNTYFP &lt;chr&gt; &quot;103&quot;, &quot;103&quot;, &quot;103&quot;, &quot;103&quot;, &quot;103&quot;, &quot;103&quot;, &quot;103&quot;, &quot;103&quot;, &quot;103&quot;…
+## $ TRACTCE  &lt;chr&gt; &quot;981900&quot;, &quot;071400&quot;, &quot;071104&quot;, &quot;071205&quot;, &quot;071204&quot;, &quot;071202&quot;, &quot;…
+## $ BLKGRPCE &lt;chr&gt; &quot;3&quot;, &quot;4&quot;, &quot;1&quot;, &quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;1&quot;, &quot;5&quot;, &quot;3&quot;, &quot;3&quot;, &quot;2&quot;, &quot;4&quot;, &quot;…
+## $ GEOID    &lt;chr&gt; &quot;201039819003&quot;, &quot;201030714004&quot;, &quot;201030711041&quot;, &quot;201030712051…
+## $ NAMELSAD &lt;chr&gt; &quot;Block Group 3&quot;, &quot;Block Group 4&quot;, &quot;Block Group 1&quot;, &quot;Block Gro…
+## $ MTFCC    &lt;chr&gt; &quot;G5030&quot;, &quot;G5030&quot;, &quot;G5030&quot;, &quot;G5030&quot;, &quot;G5030&quot;, &quot;G5030&quot;, &quot;G5030&quot;…
+## $ FUNCSTAT &lt;chr&gt; &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;…
+## $ ALAND    &lt;dbl&gt; 985868, 36558866, 18268375, 25878112, 11390155, 24298756, 822…
+## $ AWATER   &lt;dbl&gt; 0, 74689, 60813, 152425, 68354, 60750, 0, 204048, 133132, 791…
+## $ INTPTLAT &lt;chr&gt; &quot;+39.3392651&quot;, &quot;+39.0295688&quot;, &quot;+39.2137158&quot;, &quot;+39.1794818&quot;, &quot;…
+## $ INTPTLON &lt;chr&gt; &quot;-094.9372468&quot;, &quot;-095.1684564&quot;, &quot;-094.9340523&quot;, &quot;-094.9288073…
+## $ geometry &lt;POLYGON [°]&gt; POLYGON ((-94.94756 39.3373..., POLYGON ((-95.18756 3…</code></pre>
 <pre class="r"><code>bg_ks                                  %&gt;%
    ggplot()                             +
       geom_sf(aes())                    +
@@ -461,7 +456,7 @@ path_name                              %&gt;%
   st_read(stringsAsFactors=FALSE)      %&gt;%
   filter(COUNTYFP %in% co_list)         -&gt; bg_mo</code></pre>
 <pre><code>## Reading layer `tl_2021_29_bg&#39; from data source 
-##   `C:\Users\steve\Documents\git\Satya1\Data\bg\tl_2021_29_bg.shp&#39; 
+##   `C:\Users\VVISM\Desktop\thesis 2\jakkidi\Data\bg\tl_2021_29_bg.shp&#39; 
 ##   using driver `ESRI Shapefile&#39;
 ## Simple feature collection with 5031 features and 12 fields
 ## Geometry type: POLYGON
@@ -471,19 +466,19 @@ path_name                              %&gt;%
 <pre class="r"><code>glimpse(bg_mo)</code></pre>
 <pre><code>## Rows: 995
 ## Columns: 13
-## $ STATEFP  &lt;chr&gt; &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;~
-## $ COUNTYFP &lt;chr&gt; &quot;047&quot;, &quot;165&quot;, &quot;165&quot;, &quot;165&quot;, &quot;165&quot;, &quot;047&quot;, &quot;095&quot;, &quot;047&quot;, &quot;095&quot;~
-## $ TRACTCE  &lt;chr&gt; &quot;021403&quot;, &quot;030207&quot;, &quot;030207&quot;, &quot;030207&quot;, &quot;030208&quot;, &quot;022000&quot;, &quot;~
-## $ BLKGRPCE &lt;chr&gt; &quot;2&quot;, &quot;1&quot;, &quot;3&quot;, &quot;4&quot;, &quot;1&quot;, &quot;1&quot;, &quot;1&quot;, &quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;2&quot;, &quot;1&quot;, &quot;~
-## $ GEOID    &lt;chr&gt; &quot;290470214032&quot;, &quot;291650302071&quot;, &quot;291650302073&quot;, &quot;291650302074~
-## $ NAMELSAD &lt;chr&gt; &quot;Block Group 2&quot;, &quot;Block Group 1&quot;, &quot;Block Group 3&quot;, &quot;Block Gro~
-## $ MTFCC    &lt;chr&gt; &quot;G5030&quot;, &quot;G5030&quot;, &quot;G5030&quot;, &quot;G5030&quot;, &quot;G5030&quot;, &quot;G5030&quot;, &quot;G5030&quot;~
-## $ FUNCSTAT &lt;chr&gt; &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;~
-## $ ALAND    &lt;dbl&gt; 1461122, 1813050, 1093503, 961599, 2231066, 12331970, 2397765~
-## $ AWATER   &lt;dbl&gt; 0, 320354, 0, 17669, 0, 50592, 47627, 0, 0, 0, 0, 0, 0, 0, 86~
-## $ INTPTLAT &lt;chr&gt; &quot;+39.2421134&quot;, &quot;+39.2269868&quot;, &quot;+39.2415163&quot;, &quot;+39.2298590&quot;, &quot;~
-## $ INTPTLON &lt;chr&gt; &quot;-094.4140370&quot;, &quot;-094.6366053&quot;, &quot;-094.6533078&quot;, &quot;-094.6477291~
-## $ geometry &lt;POLYGON [°]&gt; POLYGON ((-94.42634 39.2372..., POLYGON ((-94.64727 3~</code></pre>
+## $ STATEFP  &lt;chr&gt; &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;…
+## $ COUNTYFP &lt;chr&gt; &quot;047&quot;, &quot;165&quot;, &quot;165&quot;, &quot;165&quot;, &quot;165&quot;, &quot;047&quot;, &quot;095&quot;, &quot;047&quot;, &quot;095&quot;…
+## $ TRACTCE  &lt;chr&gt; &quot;021403&quot;, &quot;030207&quot;, &quot;030207&quot;, &quot;030207&quot;, &quot;030208&quot;, &quot;022000&quot;, &quot;…
+## $ BLKGRPCE &lt;chr&gt; &quot;2&quot;, &quot;1&quot;, &quot;3&quot;, &quot;4&quot;, &quot;1&quot;, &quot;1&quot;, &quot;1&quot;, &quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;2&quot;, &quot;1&quot;, &quot;…
+## $ GEOID    &lt;chr&gt; &quot;290470214032&quot;, &quot;291650302071&quot;, &quot;291650302073&quot;, &quot;291650302074…
+## $ NAMELSAD &lt;chr&gt; &quot;Block Group 2&quot;, &quot;Block Group 1&quot;, &quot;Block Group 3&quot;, &quot;Block Gro…
+## $ MTFCC    &lt;chr&gt; &quot;G5030&quot;, &quot;G5030&quot;, &quot;G5030&quot;, &quot;G5030&quot;, &quot;G5030&quot;, &quot;G5030&quot;, &quot;G5030&quot;…
+## $ FUNCSTAT &lt;chr&gt; &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;…
+## $ ALAND    &lt;dbl&gt; 1461122, 1813050, 1093503, 961599, 2231066, 12331970, 2397765…
+## $ AWATER   &lt;dbl&gt; 0, 320354, 0, 17669, 0, 50592, 47627, 0, 0, 0, 0, 0, 0, 0, 86…
+## $ INTPTLAT &lt;chr&gt; &quot;+39.2421134&quot;, &quot;+39.2269868&quot;, &quot;+39.2415163&quot;, &quot;+39.2298590&quot;, &quot;…
+## $ INTPTLON &lt;chr&gt; &quot;-094.4140370&quot;, &quot;-094.6366053&quot;, &quot;-094.6533078&quot;, &quot;-094.6477291…
+## $ geometry &lt;POLYGON [°]&gt; POLYGON ((-94.42634 39.2372..., POLYGON ((-94.64727 3…</code></pre>
 <pre class="r"><code>bg_mo                                  %&gt;%
    ggplot()                             +
       geom_sf(aes())                    +
@@ -492,20 +487,9 @@ path_name                              %&gt;%
 </div>
 <div id="combine-kansas-and-missouri" class="section level3">
 <h3>Combine Kansas and Missouri</h3>
-<pre class="r"><code>co_list &lt;- c(
-  &quot;20091&quot;,
-  &quot;20103&quot;,
-  &quot;20209&quot;,
-  &quot;29037&quot;,
-  &quot;29047&quot;,
-  &quot;29095&quot;,
-  &quot;29165&quot;)
-
-bg_ks                                  %&gt;%
+<pre class="r"><code>bg_ks                                  %&gt;%
   bind_rows(bg_mo)                     %&gt;%
-  mutate(bg_id=GEOID)                  %&gt;%
-  mutate(co_id=str_sub(bg_id, 1, 5))   %&gt;%
-  filter(co_id %in% co_list)           %&gt;%
+  rename(bg_id=GEOID)                  %&gt;%
   rename(bg_name=NAMELSAD)              -&gt; bg
 
 bg                                     %&gt;%
@@ -521,10 +505,10 @@ bg                                     %&gt;%
 glimpse(bg)</code></pre>
 <pre><code>## Rows: 1,684
 ## Columns: 4
-## $ bg_id    &lt;chr&gt; &quot;201039819003&quot;, &quot;201030714004&quot;, &quot;201030711041&quot;, &quot;201030712051~
-## $ bg_name  &lt;chr&gt; &quot;Block Group 3&quot;, &quot;Block Group 4&quot;, &quot;Block Group 1&quot;, &quot;Block Gro~
-## $ bg_area  &lt;dbl&gt; 984975.5, 36602869.0, 18313082.5, 26007918.3, 11448660.8, 243~
-## $ geometry &lt;POLYGON [°]&gt; POLYGON ((-94.94756 39.3373..., POLYGON ((-95.18756 3~</code></pre>
+## $ bg_id    &lt;chr&gt; &quot;201039819003&quot;, &quot;201030714004&quot;, &quot;201030711041&quot;, &quot;201030712051…
+## $ bg_name  &lt;chr&gt; &quot;Block Group 3&quot;, &quot;Block Group 4&quot;, &quot;Block Group 1&quot;, &quot;Block Gro…
+## $ bg_area  &lt;dbl&gt; 984975.5, 36602869.0, 18313082.5, 26007918.3, 11448660.8, 243…
+## $ geometry &lt;POLYGON [°]&gt; POLYGON ((-94.94756 39.3373..., POLYGON ((-95.18756 3…</code></pre>
 <pre class="r"><code>bg                                     %&gt;%
  ggplot()                               +
       geom_sf(aes())                    +

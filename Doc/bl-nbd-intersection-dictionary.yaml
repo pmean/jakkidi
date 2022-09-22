@@ -1,0 +1,30 @@
+---
+data_dictionary:nbd-bl-intersection.Rdata 
+
+authors: Satya Golla ,Mounika Jakkidi,and Steve Simon
+
+copyright:  
+  Not directly stated, but this file should
+  be in the public domain.
+
+creation_date: Unknown
+
+description:  
+  simple features file for the intersection between 
+  census blocks and neighborhoods.
+  This file uses the bl.Rdata,nbd.Rdata
+  you should run store-block-information.Rmd and 
+  store-neighborhood-information.Rmd
+
+format: 
+  proprietary: Simple feature
+
+  missing-value-code: not needed
+
+  rows:
+
+  columns:
+ 
+vars:
+  
+---

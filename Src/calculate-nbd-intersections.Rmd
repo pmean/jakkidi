@@ -1,6 +1,6 @@
 ---
-title: "Calculate intersection of blocks and neighborhoods"
-author: "Satya Golla and Steve Simon"
+title: "Calculate intersection of blocks and neighorhoods"
+author: "Satya Golla, Mounika Jakkidi, and Steve Simon"
 date: "Created 2022-03-11"
 output: html_document
 knit: (function(inputFile, encoding) {
@@ -8,9 +8,7 @@ knit: (function(inputFile, encoding) {
   output_dir = "../results", output_format = "all") })
 ---
 
-# Use code similar to calculate-cd-intersections
- 
-This program will calculate which census blocks intersect with which neighborhoods. It relies on information stored in
+This program will calculate which census blocks intersect with neighorhoods. It relies on information stored in
 
 + bg.RData
 + bl.RData
@@ -36,23 +34,20 @@ Wyandotte County, KS (20209)
 ```{r setup}
 library(sf)
 library(tidyverse)
-library(magrittr)
 path_name <- "../data/"
 load(paste0(path_name, "bg", ".RData"))
 load(paste0(path_name, "bl", ".RData"))
 load(paste0(path_name, "nbd", ".RData"))
 ```
 
-### Intersect blocks and neighborhoods
+### Intersect blocks and neighorhoods
 
-Identify the list of all blocks that partially or completely intersect with any neighborhood. Calculate the block area and add it back to the data frame.
+Identify the list of all blocks that partially or completely intersect with neighborhoods. Calculate the block area and add it back to the data frame.
 
 ```{r intersect-bl}
 bl                                     %>%
-  st_intersection(nbd)                  -> bl_nbd_intersection
-```
+  st_intersection(nbd)                 -> bl_nbd_intersection
 
-```{r intersect-bl-part2}
 bl_nbd_intersection                    %>%
   st_area                              %>%
   as.numeric                           %>%
@@ -64,7 +59,6 @@ bl_nbd_intersection                    %>%
   mutate(
     bl_prop_in=in_area/bl_area)        %>%
   mutate(
-    
     bl_prop_in=round(bl_prop_in, 3))   %>%
   select(
     bg_id,
@@ -74,16 +68,14 @@ bl_nbd_intersection                    %>%
 ```
 
 
-### Intersect block groups and neighborhoods
+### Intersect block groups and neighorhoods
 
-Identify the list of all block groups that partially or completely intersect with any neighborhood.
+Identify the list of all block groups that partially or completely intersect with neighborhoods.
 
 ```{r intersect-bg}
 bg                                     %>%
   st_intersection(nbd)                 -> bg_nbd_intersection
-```
 
-```{r intersect-bg-part2}
 bg_nbd_intersection                    %>%
   st_area                              %>%
   as.numeric                           %>%
@@ -96,7 +88,7 @@ bg_nbd_intersection                    %>%
   select(
     bg_id,
     nbd_id, 
-    bg_prop_in)                         -> bg_nbd_intersection
+    bg_prop_in)                       -> bg_nbd_intersection
 ```
 
 ### Save the information in an RData file.
