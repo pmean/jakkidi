@@ -1,0 +1,31 @@
+---
+title: "Testing Tidycensus"
+author: "Stephen Simon, Mounika Reddy Jakkidi"
+date: "2022-10-07"
+output: html_document
+---
+
+using code from https://csde-uw.github.io/tidycensus-tutorial/
+
+```{r}
+library(tidyverse)
+library(tidycensus)
+
+library(jsonlite)
+
+# For this tutorial you should have obtained a census API key
+# you can replace the line below with your own key 
+# myKey <- "my_census_api_key"
+myKEY <- Sys.getenv("CENSUS_API_KEY")
+
+url  <- "https://api.census.gov"
+path <- "/data/2018/acs/acs1/"
+query <- paste0("?get=NAME,group(B01001)&for=state&key=", myKEY)
+
+callMAT <- fromJSON(paste0(url, path, query))
+colnames(callMAT) <- callMAT[1,]
+
+as_tibble(callMAT)[2:nrow(callMAT),1:3] %>%
+    mutate(B01001_001E = as.numeric(B01001_001E)) %>%
+    arrange(NAME)
+```

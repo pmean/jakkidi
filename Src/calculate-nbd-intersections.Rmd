@@ -34,7 +34,7 @@ Wyandotte County, KS (20209)
 ```{r setup}
 library(sf)
 library(tidyverse)
-path_name <- "../data/"
+path_name <- "../Data/"
 load(paste0(path_name, "bg", ".RData"))
 load(paste0(path_name, "bl", ".RData"))
 load(paste0(path_name, "nbd", ".RData"))
@@ -45,8 +45,10 @@ load(paste0(path_name, "nbd", ".RData"))
 Identify the list of all blocks that partially or completely intersect with neighborhoods. Calculate the block area and add it back to the data frame.
 
 ```{r intersect-bl}
+nbd <- nbd[1:3,]
 bl                                     %>%
   st_intersection(nbd)                 -> bl_nbd_intersection
+glimpse(bl_nbd_intersection)
 
 bl_nbd_intersection                    %>%
   st_area                              %>%
@@ -59,12 +61,13 @@ bl_nbd_intersection                    %>%
   mutate(
     bl_prop_in=in_area/bl_area)        %>%
   mutate(
-    bl_prop_in=round(bl_prop_in, 3))   %>%
+    bl_prop_in=round(bl_prop_in, 3))   %>%   
   select(
     bg_id,
     bl_id, 
-    nbd_id, 
-    bl_prop_in)                         -> bl_nbd_intersection
+    NID, 
+    bl_prop_in)                       -> bl_nbd_intersection
+glimpse(bl_nbd_intersection)
 ```
 
 
@@ -75,6 +78,7 @@ Identify the list of all block groups that partially or completely intersect wit
 ```{r intersect-bg}
 bg                                     %>%
   st_intersection(nbd)                 -> bg_nbd_intersection
+glimpse(bg_nbd_intersection)
 
 bg_nbd_intersection                    %>%
   st_area                              %>%
@@ -87,13 +91,15 @@ bg_nbd_intersection                    %>%
     bg_prop_in=round(bg_prop_in, 3))   %>%
   select(
     bg_id,
-    nbd_id, 
+    NID, 
     bg_prop_in)                       -> bg_nbd_intersection
+glimpse(bg_nbd_intersection)
 ```
 
 ### Save the information in an RData file.
 
 ```{r save}
+
 save(
   bl_nbd_intersection,
   bg_nbd_intersection,

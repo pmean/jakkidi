@@ -9,10 +9,10 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Satya Golla and Steve Simon" />
+<meta name="author" content="Satya Golla, Mounika Jakkidi, and Steve Simon" />
 
 
-<title>Store redistricting information</title>
+<title>Calculate intersection of blocks and neighorhoods</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -355,28 +355,34 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">Store redistricting information</h1>
-<h4 class="author">Satya Golla and Steve Simon</h4>
-<h4 class="date">Created 2022-03-08</h4>
+<h1 class="title toc-ignore">Calculate intersection of blocks and
+neighorhoods</h1>
+<h4 class="author">Satya Golla, Mounika Jakkidi, and Steve Simon</h4>
+<h4 class="date">Created 2022-03-11</h4>
 
 </div>
 
 
-<p>This program will read in census redistricting files which provide
-population and housing counts for every census block in every state in
-the U.S.</p>
+<p>This program will calculate which census blocks intersect with
+neighorhoods. It relies on information stored in</p>
+<ul>
+<li>bg.RData</li>
+<li>bl.RData</li>
+<li>nbd.RData</li>
+</ul>
 <div id="general-information" class="section level3">
 <h3>General information</h3>
-<p>The starting point for data and information about the redistricting
-files is <a href="https://www.census.gov/programs-surveys/decennial-census/about/rdo/summary-files.html">here</a>.</p>
-<p>This program is based on pl_geohd_2020_dar.r, which is part of <a href="https://www2.census.gov/programs-surveys/decennial/rdo/about/2020-census-program/Phase3/SupportMaterials/2020PL_R_import_scripts.zip">this
-zip file</a>.</p>
-<p>An important contact at City Hall in Kansas City, Missouri is Steve
-Lebowski. He has done similar work every time new Census information is
-available.</p>
+<p>For information about various files, refer to the files that stored
+the relevant data (e.g., store_block_information.Rmd).</p>
+<p>It helps to know the FIPS (Federal Information Processing System)
+codes for Kansas (20) and Missouri (29).</p>
+<p>The important counties for this program are</p>
+<p>Cass County, MO (29037) Clay County, MO (29047) Jackson County, MO
+(29095) Johnson County, KS (20091) Leavenworth County, KS (20103)
+Wyandotte County, KS (20209)</p>
 </div>
-<div id="setup" class="section level3">
-<h3>Setup</h3>
+<div id="load-relevant-files" class="section level3">
+<h3>Load relevant files</h3>
 <pre class="r"><code>library(sf)</code></pre>
 <pre><code>## Linking to GEOS 3.9.1, GDAL 3.4.3, PROJ 7.2.1; sf_use_s2() is TRUE</code></pre>
 <pre class="r"><code>library(tidyverse)</code></pre>
@@ -390,351 +396,116 @@ available.</p>
 ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
 ## ✖ dplyr::filter() masks stats::filter()
 ## ✖ dplyr::lag()    masks stats::lag()</code></pre>
-<pre class="r"><code>path_name &lt;- &quot;../data/&quot;
+<pre class="r"><code>path_name &lt;- &quot;../Data/&quot;
+load(paste0(path_name, &quot;bg&quot;, &quot;.RData&quot;))
 load(paste0(path_name, &quot;bl&quot;, &quot;.RData&quot;))
-load(paste0(path_name, &quot;nbd&quot;, &quot;.RData&quot;))
-vnames &lt;- c(
-  &quot;FILEID&quot;, 
-  &quot;STUSAB&quot;, 
-  &quot;SUMLEV&quot;, 
-  &quot;GEOVAR&quot;, 
-  &quot;GEOCOMP&quot;, 
-  &quot;CHARITER&quot;, 
-  &quot;CIFSN&quot;, 
-  &quot;LOGRECNO&quot;, 
-  &quot;GEOID&quot;, 
-  &quot;GEOCODE&quot;,
-  &quot;REGION&quot;,
-  &quot;DIVISION&quot;,
-  &quot;STATE&quot;,
-  &quot;STATENS&quot;,
-  &quot;COUNTY&quot;,
-  &quot;COUNTYCC&quot;,
-  &quot;COUNTYNS&quot;,
-  &quot;COUSUB&quot;,
-  &quot;COUSUBCC&quot;,
-  &quot;COUSUBNS&quot;,
-  &quot;SUBMCD&quot;,
-  &quot;SUBMCDCC&quot;,
-  &quot;SUBMCDNS&quot;,
-  &quot;ESTATE&quot;,
-  &quot;ESTATECC&quot;,
-  &quot;ESTATENS&quot;, 
-  &quot;CONCIT&quot;,
-  &quot;CONCITCC&quot;,
-  &quot;CONCITNS&quot;,
-  &quot;PLACE&quot;,
-  &quot;PLACECC&quot;,
-  &quot;PLACENS&quot;,
-  &quot;TRACT&quot;,
-  &quot;BLKGRP&quot;,
-  &quot;BLOCK&quot;, 
-  &quot;AIANHH&quot;,
-  &quot;AIHHTLI&quot;,
-  &quot;AIANHHFP&quot;,
-  &quot;AIANHHCC&quot;,
-  &quot;AIANHHNS&quot;,
-  &quot;AITS&quot;,
-  &quot;AITSFP&quot;,
-  &quot;AITSCC&quot;,
-  &quot;AITSNS&quot;,
-  &quot;TTRACT&quot;,
-  &quot;TBLKGRP&quot;,
-  &quot;ANRC&quot;,
-  &quot;ANRCCC&quot;,
-  &quot;ANRCNS&quot;,
-  &quot;CBSA&quot;,
-  &quot;MEMI&quot;,
-  &quot;CSA&quot;,
-  &quot;METDIV&quot;,
-  &quot;NECTA&quot;,
-  &quot;NMEMI&quot;,
-  &quot;CNECTA&quot;,
-  &quot;NECTADIV&quot;,
-  &quot;CBSAPCI&quot;,
-  &quot;NECTAPCI&quot;,
-  &quot;UA&quot;,
-  &quot;UATYPE&quot;,
-  &quot;UR&quot;,
-  &quot;CD116&quot;,
-  &quot;CD118&quot;,
-  &quot;CD119&quot;, 
-  &quot;CD120&quot;, 
-  &quot;CD121&quot;, 
-  &quot;SLDU18&quot;, 
-  &quot;SLDU22&quot;, 
-  &quot;SLDU24&quot;, 
-  &quot;SLDU26&quot;, 
-  &quot;SLDU28&quot;, 
-  &quot;SLDL18&quot;, 
-  &quot;SLDL22&quot;,
-  &quot;SLDL24&quot;,
-  &quot;SLDL26&quot;,
-  &quot;SLDL28&quot;,
-  &quot;VTD&quot;,
-  &quot;VTDI&quot;,
-  &quot;ZCTA&quot;,
-  &quot;SDELM&quot;,
-  &quot;SDSEC&quot;,
-  &quot;SDUNI&quot;,
-  &quot;PUMA&quot;,
-  &quot;AREALAND&quot;,
-  &quot;AREAWATR&quot;,
-  &quot;BASENAME&quot;,
-  &quot;NAME&quot;,
-  &quot;FUNCSTAT&quot;,
-  &quot;GCUNI&quot;,
-  &quot;POP100&quot;,
-  &quot;HU100&quot;,
-  &quot;INTPTLAT&quot;,
-  &quot;INTPTLON&quot;,
-  &quot;LSADC&quot;,
-  &quot;PARTFLAG&quot;,
-  &quot;UGA&quot;)</code></pre>
+load(paste0(path_name, &quot;nbd&quot;, &quot;.RData&quot;))</code></pre>
 </div>
-<div id="read-kansas-redistricting-files" class="section level3">
-<h3>Read Kansas redistricting files</h3>
-<p>Setting SUMLEV==“750” produces information for individual census
-blocks. Setting it to SUM==“150” produce information for individual
-block groups.</p>
-<pre class="r"><code>file_name &lt;- &quot;red/ksgeo2020.pl&quot;
-path_name                              %&gt;%
-  paste0(file_name)                    %&gt;%
-  read.delim(
-    header=FALSE, 
-    colClasses=&quot;character&quot;, 
-    sep=&quot;|&quot;)                           -&gt; red1
-names(red1) &lt;- vnames
-red1                                  %&gt;%
-  filter(SUMLEV == &quot;750&quot;)              -&gt; red1
-red1                                  %&gt;%
-  head</code></pre>
-<pre><code>##   FILEID STUSAB SUMLEV GEOVAR GEOCOMP CHARITER CIFSN LOGRECNO
-## 1   PLST     KS    750     00      00      000    00  0087484
-## 2   PLST     KS    750     00      00      000    00  0087485
-## 3   PLST     KS    750     00      00      000    00  0087486
-## 4   PLST     KS    750     00      00      000    00  0087487
-## 5   PLST     KS    750     00      00      000    00  0087488
-## 6   PLST     KS    750     00      00      000    00  0087489
-##                      GEOID         GEOCODE REGION DIVISION STATE  STATENS
-## 1 7500000US200019526001000 200019526001000      2        4    20 00481813
-## 2 7500000US200019526001001 200019526001001      2        4    20 00481813
-## 3 7500000US200019526001002 200019526001002      2        4    20 00481813
-## 4 7500000US200019526001003 200019526001003      2        4    20 00481813
-## 5 7500000US200019526001004 200019526001004      2        4    20 00481813
-## 6 7500000US200019526001005 200019526001005      2        4    20 00481813
-##   COUNTY COUNTYCC COUNTYNS COUSUB COUSUBCC COUSUBNS SUBMCD SUBMCDCC SUBMCDNS
-## 1    001       H1 00484970  53075       T1 00478140                         
-## 2    001       H1 00484970  53075       T1 00478140                         
-## 3    001       H1 00484970  53075       T1 00478140                         
-## 4    001       H1 00484970  53075       T1 00478140                         
-## 5    001       H1 00484970  53075       T1 00478140                         
-## 6    001       H1 00484970  53075       T1 00478140                         
-##   ESTATE ESTATECC ESTATENS CONCIT CONCITCC CONCITNS PLACE PLACECC  PLACENS
-## 1                           99999       99 99999999 99999      99 99999999
-## 2                           99999       99 99999999 99999      99 99999999
-## 3                           99999       99 99999999 99999      99 99999999
-## 4                           99999       99 99999999 99999      99 99999999
-## 5                           99999       99 99999999 99999      99 99999999
-## 6                           99999       99 99999999 99999      99 99999999
-##    TRACT BLKGRP BLOCK AIANHH AIHHTLI AIANHHFP AIANHHCC AIANHHNS AITS AITSFP
-## 1 952600      1  1000   9999       9    99999       99 99999999  999  99999
-## 2 952600      1  1001   9999       9    99999       99 99999999  999  99999
-## 3 952600      1  1002   9999       9    99999       99 99999999  999  99999
-## 4 952600      1  1003   9999       9    99999       99 99999999  999  99999
-## 5 952600      1  1004   9999       9    99999       99 99999999  999  99999
-## 6 952600      1  1005   9999       9    99999       99 99999999  999  99999
-##   AITSCC   AITSNS TTRACT TBLKGRP  ANRC ANRCCC   ANRCNS  CBSA MEMI CSA METDIV
-## 1     99 99999999 999999       9 99999     99 99999999 99999    9 999  99999
-## 2     99 99999999 999999       9 99999     99 99999999 99999    9 999  99999
-## 3     99 99999999 999999       9 99999     99 99999999 99999    9 999  99999
-## 4     99 99999999 999999       9 99999     99 99999999 99999    9 999  99999
-## 5     99 99999999 999999       9 99999     99 99999999 99999    9 999  99999
-## 6     99 99999999 999999       9 99999     99 99999999 99999    9 999  99999
-##   NECTA NMEMI CNECTA NECTADIV CBSAPCI NECTAPCI UA UATYPE UR CD116 CD118 CD119
-## 1 99999     9    999    99999       9        9                 02            
-## 2 99999     9    999    99999       9        9                 02            
-## 3 99999     9    999    99999       9        9                 02            
-## 4 99999     9    999    99999       9        9                 02            
-## 5 99999     9    999    99999       9        9                 02            
-## 6 99999     9    999    99999       9        9                 02            
-##   CD120 CD121 SLDU18 SLDU22 SLDU24 SLDU26 SLDU28 SLDL18 SLDL22 SLDL24 SLDL26
-## 1                012                                002                     
-## 2                012                                002                     
-## 3                012                                002                     
-## 4                012                                002                     
-## 5                012                                002                     
-## 6                012                                002                     
-##   SLDL28    VTD VTDI ZCTA SDELM SDSEC SDUNI PUMA AREALAND AREAWATR BASENAME
-## 1        000170    P      99999 99999 09660       1261054     3981     1000
-## 2        000170    P      99999 99999 09660       1310368     4231     1001
-## 3        000170    P      99999 99999 09660       1208094     4058     1002
-## 4        000170    P      99999 99999 09660       2377540     5091     1003
-## 5        000170    P      99999 99999 09660       1601891     1772     1004
-## 6        000170    P      99999 99999 09660         40731        0     1005
-##         NAME FUNCSTAT GCUNI POP100 HU100    INTPTLAT     INTPTLON LSADC
-## 1 Block 1000        S            3     1 +38.0339223 -095.0868798    BK
-## 2 Block 1001        S            8     3 +38.0342581 -095.1087615    BK
-## 3 Block 1002        S            7     3 +38.0304089 -095.1191901    BK
-## 4 Block 1003        S            0     0 +38.0315672 -095.1321728    BK
-## 5 Block 1004        S            0     0 +38.0343857 -095.1554296    BK
-## 6 Block 1005        S            0     0 +38.0363729 -095.1708784    BK
-##   PARTFLAG   UGA
-## 1          99999
-## 2          99999
-## 3          99999
-## 4          99999
-## 5          99999
-## 6          99999</code></pre>
-</div>
-<div id="read-missouri-redistricting-files" class="section level3">
-<h3>Read Missouri redistricting files</h3>
-<pre class="r"><code>file_name &lt;- &quot;red/mogeo2020.pl&quot;
-path_name                              %&gt;%
-  paste(file_name, sep=&quot;/&quot;)            %&gt;%
-  read.delim(
-    header=FALSE, 
-    colClasses=&quot;character&quot;, 
-    sep=&quot;|&quot;)                           -&gt; red2
-names(red2) &lt;- vnames
-red2                                  %&gt;%
-  filter(SUMLEV == &quot;750&quot;)              -&gt; red2
-red2                                  %&gt;%
-  head</code></pre>
-<pre><code>##   FILEID STUSAB SUMLEV GEOVAR GEOCOMP CHARITER CIFSN LOGRECNO
-## 1   PLST     MO    750     00      00      000    00  0126110
-## 2   PLST     MO    750     00      00      000    00  0126111
-## 3   PLST     MO    750     00      00      000    00  0126112
-## 4   PLST     MO    750     00      00      000    00  0126113
-## 5   PLST     MO    750     00      00      000    00  0126114
-## 6   PLST     MO    750     00      00      000    00  0126115
-##                      GEOID         GEOCODE REGION DIVISION STATE  STATENS
-## 1 7500000US290019501001000 290019501001000      2        4    29 01779791
-## 2 7500000US290019501001001 290019501001001      2        4    29 01779791
-## 3 7500000US290019501001002 290019501001002      2        4    29 01779791
-## 4 7500000US290019501001003 290019501001003      2        4    29 01779791
-## 5 7500000US290019501001004 290019501001004      2        4    29 01779791
-## 6 7500000US290019501001005 290019501001005      2        4    29 01779791
-##   COUNTY COUNTYCC COUNTYNS COUSUB COUSUBCC COUSUBNS SUBMCD SUBMCDCC SUBMCDNS
-## 1    001       H1 00765805  14248       Z1 00766211                         
-## 2    001       H1 00765805  14248       Z1 00766211                         
-## 3    001       H1 00765805  14248       Z1 00766211                         
-## 4    001       H1 00765805  14248       Z1 00766211                         
-## 5    001       H1 00765805  14248       Z1 00766211                         
-## 6    001       H1 00765805  14248       Z1 00766211                         
-##   ESTATE ESTATECC ESTATENS CONCIT CONCITCC CONCITNS PLACE PLACECC  PLACENS
-## 1                           99999       99 99999999 99999      99 99999999
-## 2                           99999       99 99999999 99999      99 99999999
-## 3                           99999       99 99999999 99999      99 99999999
-## 4                           99999       99 99999999 99999      99 99999999
-## 5                           99999       99 99999999 99999      99 99999999
-## 6                           99999       99 99999999 99999      99 99999999
-##    TRACT BLKGRP BLOCK AIANHH AIHHTLI AIANHHFP AIANHHCC AIANHHNS AITS AITSFP
-## 1 950100      1  1000   9999       9    99999       99 99999999  999  99999
-## 2 950100      1  1001   9999       9    99999       99 99999999  999  99999
-## 3 950100      1  1002   9999       9    99999       99 99999999  999  99999
-## 4 950100      1  1003   9999       9    99999       99 99999999  999  99999
-## 5 950100      1  1004   9999       9    99999       99 99999999  999  99999
-## 6 950100      1  1005   9999       9    99999       99 99999999  999  99999
-##   AITSCC   AITSNS TTRACT TBLKGRP  ANRC ANRCCC   ANRCNS  CBSA MEMI CSA METDIV
-## 1     99 99999999 999999       9 99999     99 99999999 28860    2 999  99999
-## 2     99 99999999 999999       9 99999     99 99999999 28860    2 999  99999
-## 3     99 99999999 999999       9 99999     99 99999999 28860    2 999  99999
-## 4     99 99999999 999999       9 99999     99 99999999 28860    2 999  99999
-## 5     99 99999999 999999       9 99999     99 99999999 28860    2 999  99999
-## 6     99 99999999 999999       9 99999     99 99999999 28860    2 999  99999
-##   NECTA NMEMI CNECTA NECTADIV CBSAPCI NECTAPCI UA UATYPE UR CD116 CD118 CD119
-## 1 99999     9    999    99999       9        9                 06            
-## 2 99999     9    999    99999       9        9                 06            
-## 3 99999     9    999    99999       9        9                 06            
-## 4 99999     9    999    99999       9        9                 06            
-## 5 99999     9    999    99999       9        9                 06            
-## 6 99999     9    999    99999       9        9                 06            
-##   CD120 CD121 SLDU18 SLDU22 SLDU24 SLDU26 SLDU28 SLDL18 SLDL22 SLDL24 SLDL26
-## 1                018                                004                     
-## 2                018                                004                     
-## 3                018                                004                     
-## 4                018                                004                     
-## 5                018                                004                     
-## 6                018                                004                     
-##   SLDL28    VTD VTDI ZCTA SDELM SDSEC SDUNI PUMA AREALAND AREAWATR BASENAME
-## 1        000002    P      99999 99999 05790       5243440        0     1000
-## 2        000002    P      99999 99999 05790       2796200        0     1001
-## 3        000002    P      99999 99999 05790       3550451        0     1002
-## 4        000002    P      99999 99999 05790       1584957        0     1003
-## 5        000002    P      99999 99999 05790       3043003        0     1004
-## 6        000002    P      99999 99999 05790       1302462        0     1005
-##         NAME FUNCSTAT GCUNI POP100 HU100    INTPTLAT     INTPTLON LSADC
-## 1 Block 1000        S            2     2 +40.3392346 -092.3689333    BK
-## 2 Block 1001        S            7     3 +40.3372244 -092.3959646    BK
-## 3 Block 1002        S           10     5 +40.3362421 -092.4132093    BK
-## 4 Block 1003        S            2     2 +40.3378874 -092.4273966    BK
-## 5 Block 1004        S           15     4 +40.3364782 -092.4400205    BK
-## 6 Block 1005        S            4     2 +40.3381197 -092.4558059    BK
-##   PARTFLAG   UGA
-## 1          99999
-## 2          99999
-## 3          99999
-## 4          99999
-## 5          99999
-## 6          99999</code></pre>
-</div>
-<div id="store-as-an-rdata-file" class="section level3">
-<h3>Store as an RData file</h3>
-<p>Placing the file in an RData format will speed up future use of this
-file.</p>
-<pre class="r"><code>clist &lt;- c(
-  &quot;20091&quot;,
-  &quot;20103&quot;,
-  &quot;20209&quot;,
-  &quot;29037&quot;,
-  &quot;29047&quot;,
-  &quot;29095&quot;,
-  &quot;29165&quot;)
-red1                                   %&gt;%
-  bind_rows(red2)                      %&gt;%
-  filter(BLOCK != &quot;&quot;)                  %&gt;%
-  filter(
-    paste0(STATE, COUNTY) 
-      %in% clist)                      %&gt;%
-  mutate(POP100=as.numeric(POP100))    %&gt;%
-  mutate(HU100=as.numeric(HU100))      %&gt;%
-  rename(people=POP100)                %&gt;%
-  rename(units=HU100)                  %&gt;%
-  rename(land_area=AREALAND)           %&gt;%
-  rename(water_area=AREAWATR)          %&gt;%
-  rename(block_lat=INTPTLAT)           %&gt;%
-  rename(block_lon=INTPTLON)           %&gt;%
+<div id="intersect-blocks-and-neighorhoods" class="section level3">
+<h3>Intersect blocks and neighorhoods</h3>
+<p>Identify the list of all blocks that partially or completely
+intersect with neighborhoods. Calculate the block area and add it back
+to the data frame.</p>
+<pre class="r"><code>nbd &lt;- nbd[1:3,]
+bl                                     %&gt;%
+  st_intersection(nbd)                 -&gt; bl_nbd_intersection</code></pre>
+<pre><code>## Warning: attribute variables are assumed to be spatially constant throughout all
+## geometries</code></pre>
+<pre class="r"><code>glimpse(bl_nbd_intersection)</code></pre>
+<pre><code>## Rows: 148
+## Columns: 15
+## $ bl_id      &lt;chr&gt; &quot;290959808021031&quot;, &quot;290959808021032&quot;, &quot;290959808021020&quot;, &quot;2…
+## $ bl_name    &lt;chr&gt; &quot;Block 1031&quot;, &quot;Block 1032&quot;, &quot;Block 1020&quot;, &quot;Block 1021&quot;, &quot;Bl…
+## $ bl_area    &lt;dbl&gt; 36687.410, 3756.812, 107163.297, 88947.848, 12892.759, 5052…
+## $ NID        &lt;dbl&gt; 244, 244, 244, 244, 244, 244, 244, 244, 244, 244, 244, 244,…
+## $ AreaName   &lt;chr&gt; &quot;Truman Sports Complex&quot;, &quot;Truman Sports Complex&quot;, &quot;Truman S…
+## $ nbr_id     &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,…
+## $ CommunityD &lt;chr&gt; &quot;Blue Ridge&quot;, &quot;Blue Ridge&quot;, &quot;Blue Ridge&quot;, &quot;Blue Ridge&quot;, &quot;Bl…
+## $ id         &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,…
+## $ label_long &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,…
+## $ shid       &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,…
+## $ Shape_Leng &lt;dbl&gt; 22348.39, 22348.39, 22348.39, 22348.39, 22348.39, 22348.39,…
+## $ Shape_Le_1 &lt;dbl&gt; 22348.39, 22348.39, 22348.39, 22348.39, 22348.39, 22348.39,…
+## $ Shape_Area &lt;dbl&gt; 25684112, 25684112, 25684112, 25684112, 25684112, 25684112,…
+## $ label      &lt;chr&gt; &quot;Truman Sports Complex&quot;, &quot;Truman Sports Complex&quot;, &quot;Truman S…
+## $ geometry   &lt;GEOMETRY [°]&gt; POLYGON ((-94.47842 39.0453..., POLYGON ((-94.4758…</code></pre>
+<pre class="r"><code>bl_nbd_intersection                    %&gt;%
+  st_area                              %&gt;%
+  as.numeric                           %&gt;%
+  tibble                               %&gt;%
+  set_names(&quot;in_area&quot;)                 %&gt;%
+  bind_cols(bl_nbd_intersection)       %&gt;%
   mutate(
-    st_id=
-      str_sub(GEOCODE, 1,  2))         %&gt;%
+    bg_id=str_sub(bl_id, 1, 12))       %&gt;%
   mutate(
-    co_id=
-      str_sub(GEOCODE, 1,  5))         %&gt;%
+    bl_prop_in=in_area/bl_area)        %&gt;%
   mutate(
-    tr_id=
-      str_sub(GEOCODE, 1, 11))         %&gt;%
-  mutate(
-    bg_id=
-      str_sub(GEOCODE, 1, 12))         %&gt;%
-  mutate(
-    bl_id=
-      str_sub(GEOCODE, 1, 15))         %&gt;%
+    bl_prop_in=round(bl_prop_in, 3))   %&gt;%   
   select(
-    tr_id,
     bg_id,
-    bl_id,
-    people,
-    units) -&gt; red
-glimpse(red)</code></pre>
-<pre><code>## Rows: 39,903
-## Columns: 5
-## $ tr_id  &lt;chr&gt; &quot;20091050000&quot;, &quot;20091050000&quot;, &quot;20091050000&quot;, &quot;20091050000&quot;, &quot;20…
-## $ bg_id  &lt;chr&gt; &quot;200910500001&quot;, &quot;200910500001&quot;, &quot;200910500001&quot;, &quot;200910500001&quot;,…
-## $ bl_id  &lt;chr&gt; &quot;200910500001000&quot;, &quot;200910500001001&quot;, &quot;200910500001002&quot;, &quot;20091…
-## $ people &lt;dbl&gt; 52, 47, 51, 58, 138, 68, 35, 81, 39, 37, 35, 51, 52, 106, 45, 8…
-## $ units  &lt;dbl&gt; 33, 29, 27, 26, 70, 34, 18, 28, 12, 11, 15, 17, 21, 49, 20, 39,…</code></pre>
-<pre class="r"><code>save(red, file=&quot;../data/red.RData&quot;)</code></pre>
+    bl_id, 
+    NID, 
+    bl_prop_in)                       -&gt; bl_nbd_intersection
+glimpse(bl_nbd_intersection)</code></pre>
+<pre><code>## Rows: 148
+## Columns: 4
+## $ bg_id      &lt;chr&gt; &quot;290959808021&quot;, &quot;290959808021&quot;, &quot;290959808021&quot;, &quot;2909598080…
+## $ bl_id      &lt;chr&gt; &quot;290959808021031&quot;, &quot;290959808021032&quot;, &quot;290959808021020&quot;, &quot;2…
+## $ NID        &lt;dbl&gt; 244, 244, 244, 244, 244, 244, 244, 244, 244, 244, 244, 244,…
+## $ bl_prop_in &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,…</code></pre>
+</div>
+<div id="intersect-block-groups-and-neighorhoods" class="section level3">
+<h3>Intersect block groups and neighorhoods</h3>
+<p>Identify the list of all block groups that partially or completely
+intersect with neighborhoods.</p>
+<pre class="r"><code>bg                                     %&gt;%
+  st_intersection(nbd)                 -&gt; bg_nbd_intersection</code></pre>
+<pre><code>## Warning: attribute variables are assumed to be spatially constant throughout all
+## geometries</code></pre>
+<pre class="r"><code>glimpse(bg_nbd_intersection)</code></pre>
+<pre><code>## Rows: 19
+## Columns: 15
+## $ bg_id      &lt;chr&gt; &quot;290950163001&quot;, &quot;290950105001&quot;, &quot;290950170002&quot;, &quot;2909501070…
+## $ bg_name    &lt;chr&gt; &quot;Block Group 1&quot;, &quot;Block Group 1&quot;, &quot;Block Group 2&quot;, &quot;Block G…
+## $ bg_area    &lt;dbl&gt; 8038941.1, 1118689.0, 1477526.4, 2184304.3, 4343336.9, 2625…
+## $ NID        &lt;dbl&gt; 244, 244, 244, 244, 244, 244, 244, 241, 241, 241, 243, 243,…
+## $ AreaName   &lt;chr&gt; &quot;Truman Sports Complex&quot;, &quot;Truman Sports Complex&quot;, &quot;Truman S…
+## $ nbr_id     &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3
+## $ CommunityD &lt;chr&gt; &quot;Blue Ridge&quot;, &quot;Blue Ridge&quot;, &quot;Blue Ridge&quot;, &quot;Blue Ridge&quot;, &quot;Bl…
+## $ id         &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+## $ label_long &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,…
+## $ shid       &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,…
+## $ Shape_Leng &lt;dbl&gt; 22348.39, 22348.39, 22348.39, 22348.39, 22348.39, 22348.39,…
+## $ Shape_Le_1 &lt;dbl&gt; 22348.39, 22348.39, 22348.39, 22348.39, 22348.39, 22348.39,…
+## $ Shape_Area &lt;dbl&gt; 25684112, 25684112, 25684112, 25684112, 25684112, 25684112,…
+## $ label      &lt;chr&gt; &quot;Truman Sports Complex&quot;, &quot;Truman Sports Complex&quot;, &quot;Truman S…
+## $ geometry   &lt;GEOMETRY [°]&gt; MULTIPOLYGON (((-94.49868 3..., MULTIPOLYGON (((-94.47841 3…</code></pre>
+<pre class="r"><code>bg_nbd_intersection                    %&gt;%
+  st_area                              %&gt;%
+  as.numeric                           %&gt;%
+  tibble                               %&gt;%
+  set_names(&quot;in_area&quot;)                 %&gt;%
+  bind_cols(bg_nbd_intersection)       %&gt;%
+  mutate(bg_prop_in=in_area/bg_area)   %&gt;%
+  mutate(
+    bg_prop_in=round(bg_prop_in, 3))   %&gt;%
+  select(
+    bg_id,
+    NID, 
+    bg_prop_in)                       -&gt; bg_nbd_intersection
+glimpse(bg_nbd_intersection)</code></pre>
+<pre><code>## Rows: 19
+## Columns: 3
+## $ bg_id      &lt;chr&gt; &quot;290950163001&quot;, &quot;290950105001&quot;, &quot;290950170002&quot;, &quot;2909501070…
+## $ NID        &lt;dbl&gt; 244, 244, 244, 244, 244, 244, 244, 241, 241, 241, 243, 243,…
+## $ bg_prop_in &lt;dbl&gt; 0.000, 0.000, 0.000, 0.000, 0.003, 0.903, 0.000, 0.064, 0.2…</code></pre>
+</div>
+<div id="save-the-information-in-an-rdata-file." class="section level3">
+<h3>Save the information in an RData file.</h3>
+<pre class="r"><code>save(
+  bl_nbd_intersection,
+  bg_nbd_intersection,
+  file=&quot;../Data/nbd-intersections.RData&quot;)</code></pre>
 </div>
 
 

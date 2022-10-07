@@ -10,6 +10,8 @@ knit: (function(inputFile, encoding) {
 
 This program will calculate which census blocks intersect with which community districts. It relies on information stored in
 
+wd
+
 + bg.RData
 + bl.RData
 + cd.RData
@@ -137,8 +139,6 @@ glimpse(bl_list)
 
 ```{r calculate-proportions}
 bl_cd_intersection                     %>%
-  inner_join(red,
-    by="bl_id")                        %>%         
   full_join(bl_list, 
     by=c("bg_id", "bl_id"))            %>%
   replace_na(list(bl_prop_in=0))       %>%
@@ -185,13 +185,10 @@ count_in                               %>%
   filter(cd_id > 0)                     -> bg_counts
 glimpse(bg_counts)
 ```
-
 ### Save the information in an RData file.
 
 ```{r save}
 save(
-  tr_counts,
-  tr_list,
   bg_counts,
   bg_list,
   bl_counts,

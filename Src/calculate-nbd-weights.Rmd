@@ -1,11 +1,196 @@
 ---
 title: "Calculate neighborhood weights"
-author: "Satya Golla and Steve Simon"
+author: "Satya Golla, Mounika Jakkkidi and Steve Simon"
 date: "Created 2022-03-11"
 output: html_document
 knit: (function(inputFile, encoding) {
   rmarkdown::render(inputFile, encoding = encoding,
   output_dir = "../results", output_format = "all") })
 ---
+This program will calculate which census blocks intersect with which neighborhoods. It relies on information stored in
 
-# Use code similar to calculate-cd-weights
+wd
+
++ bg.RData
++ bl.RData
++ nbd.RData
++ nbd-intersections.RData
++ red.RData
+
+### General information
+
+For information about various files, refer to the files that stored the relevant data (e.g., store_block_information.Rmd).
+
+It helps to know the FIPS (Federal Information Processing System) codes for Kansas (20) and Missouri (29).
+
+The important counties for this program are
+
+Cass County, MO (29037)
+Clay County, MO (29047)
+Jackson County, MO (29095)
+Johnson County, KS (20091)
+Leavenworth County, KS (20103)
+Wyandotte County, KS (20209)
+
+### Setup
+
+```{r setup}
+library(sf)
+library(tidyverse)
+path_name <- "../Data/"
+```
+
+### Load key files
+
+Block groups
+
+```{r load-bg}
+load(paste0(path_name, "bg", ".RData"))
+glimpse(bg)
+```
+
+Blocks
+
+```{r load-bl}
+load(paste0(path_name, "bl", ".RData"))
+glimpse(bl)
+```
+
+neighborhoods
+
+```{r load-nbd}
+load(paste0(path_name, "nbd", ".RData"))
+glimpse(nbd)
+```
+
+neighborhoods intersections
+
+```{r load-nbd-intersections}
+load(paste0(path_name, "nbd-intersections", ".RData"))
+glimpse(bg_nbd_intersection)
+glimpse(bl_nbd_intersection)
+```
+
+```{r load-redistricting}
+load(paste0(path_name, "red", ".RData"))
+glimpse(red)
+```
+
+### Counts
+
+```{r display-nice-counts}
+# This code will compute the count of a vector
+# and display it with commas if it is greater
+# than 999.
+nice_count <- function(x) {
+  x                                    %>%
+    unique                             %>%
+    length                             %>%
+    format(big.mark=",")
+}
+```
+
+There are 7 counties in the Kansas City metropolitan area.
+
+There are `r nice_count(nbd$nbd_id)` neighborhoods in the 7 counties.
+
+There are 
+`r nice_count(bg$bg_id)`
+block groups in the 7 counties. 
+`r nice_count(bg_nbd_intersection$bg_id)`
+of these intersect partially or completely with one or more neighborhoods.
+
+There are 
+`r nice_count(bl$bl_id)`
+blocks in the 7 counties. 
+`r nice_count(bl_nbd_intersection$bl_id)` 
+of these intersect partially or completely with one or more neighborhoods.
+
+### Get block group list
+
+Identify the list of all block groups that partially or completely intersect with any neighborhoods.
+
+```{r intersect-bg}
+bg_cd_intersection                     %>%
+  pull(bg_id)                          %>%
+  unique                                -> bg_list
+glimpse(bg_list)
+```
+
+### Get block list
+
+Now get a list of all census blocks that lie inside any of these block groups. Merge with red to get population and housing unit counts.
+
+```{r pull-blocks}
+bl                                     %>%
+  pull(bl_id)                          %>%
+  str_sub(1, 12)                       %>%
+  bind_cols(bl$bl_id)                  %>%
+  set_names(c("bg_id", "bl_id"))       %>%
+  
+  filter(bg_id %in% bg_list)           %>%
+  inner_join(red, 
+    by=c("bg_id", "bl_id"))               -> bl_list
+glimpse(bl_list)
+```
+
+### Calculate counts and areas of intersections
+
+```{r calculate-proportions}
+bl_nbd_intersection                     %>%
+  full_join(bl_list, 
+    by=c("bg_id", "bl_id"))            %>%
+  replace_na(list(bl_prop_in=0))       %>%
+  replace_na(list(nbd_id=0))            %>%
+  mutate(
+    people_in=
+      round(people*bl_prop_in))        %>%
+  mutate(
+    units_in=
+      round(units*bl_prop_in))         %>%
+  select(
+    bg_id,
+    bl_id,
+    nbd_id,
+    bl_prop_in,
+    people,
+    people_in,
+    units,
+    units_in)                           -> bl_counts
+
+glimpse(bl_counts)
+```
+
+### Calculate counts for block groups
+
+```{r count-bl}
+red                                    %>%
+  group_by(bg_id)                      %>%
+  summarize(
+    people=sum(people),
+    units=sum(units))                   -> count_total
+glimpse(count_total)
+
+bl_counts                              %>%
+  group_by(bg_id, nbd_id)              %>%
+  summarize(
+    people_in=sum(people_in),
+    units_in=sum(units_in))            %>%
+  filter(nbd_id > 0)                    -> count_in
+glimpse(count_in)
+
+count_in                               %>%
+  inner_join(count_total, by="bg_id")  %>%
+  filter(nbd_id > 0)                    -> bg_counts
+glimpse(bg_counts)
+```
+### Save the information in an RData file.
+
+```{r save}
+save(
+  bg_counts,
+  bg_list,
+  bl_counts,
+  bl_list,
+  file="../Data/nbd-weights.RData")
+```
