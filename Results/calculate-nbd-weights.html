@@ -9,10 +9,10 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Satya Golla, Mounika Jakkidi, and Steve Simon" />
+<meta name="author" content="Satya Golla, Mounika Jakkkidi and Steve Simon" />
 
 
-<title>Calculate intersection of blocks and neighorhoods</title>
+<title>Calculate neighborhood weights</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -361,20 +361,22 @@ pre code {
 
 
 
-<h1 class="title toc-ignore">Calculate intersection of blocks and
-neighorhoods</h1>
-<h4 class="author">Satya Golla, Mounika Jakkidi, and Steve Simon</h4>
+<h1 class="title toc-ignore">Calculate neighborhood weights</h1>
+<h4 class="author">Satya Golla, Mounika Jakkkidi and Steve Simon</h4>
 <h4 class="date">Created 2022-03-11</h4>
 
 </div>
 
 
-<p>This program will calculate which census blocks intersect with
-neighorhoods. It relies on information stored in</p>
+<p>This program will calculate which census blocks intersect with which
+neighborhoods. It relies on information stored in</p>
+<p>wd</p>
 <ul>
 <li>bg.RData</li>
 <li>bl.RData</li>
 <li>nbd.RData</li>
+<li>nbd-intersections.RData</li>
+<li>red.RData</li>
 </ul>
 <div id="general-information" class="section level3">
 <h3>General information</h3>
@@ -387,8 +389,8 @@ codes for Kansas (20) and Missouri (29).</p>
 (29095) Johnson County, KS (20091) Leavenworth County, KS (20103)
 Wyandotte County, KS (20209)</p>
 </div>
-<div id="load-relevant-files" class="section level3">
-<h3>Load relevant files</h3>
+<div id="setup" class="section level3">
+<h3>Setup</h3>
 <pre class="r"><code>library(sf)</code></pre>
 <pre><code>## Linking to GEOS 3.9.0, GDAL 3.2.1, PROJ 7.2.1</code></pre>
 <pre class="r"><code>library(tidyverse)</code></pre>
@@ -402,59 +404,53 @@ Wyandotte County, KS (20209)</p>
 <pre><code>## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
 ## x dplyr::filter() masks stats::filter()
 ## x dplyr::lag()    masks stats::lag()</code></pre>
-<pre class="r"><code>path_name &lt;- &quot;../Data/&quot;
-load(paste0(path_name, &quot;bg&quot;, &quot;.RData&quot;))
-load(paste0(path_name, &quot;bl&quot;, &quot;.RData&quot;))
-load(paste0(path_name, &quot;nbd&quot;, &quot;.RData&quot;))</code></pre>
+<pre class="r"><code>path_name &lt;- &quot;../Data/&quot;</code></pre>
 </div>
-<div id="intersect-blocks-and-neighorhoods" class="section level3">
-<h3>Intersect blocks and neighorhoods</h3>
-<p>Identify the list of all blocks that partially or completely
-intersect with neighborhoods. Calculate the block area and add it back
-to the data frame.</p>
-<pre class="r"><code>Sys.time()</code></pre>
-<pre><code>## [1] &quot;2022-10-10 12:48:28 CDT&quot;</code></pre>
-<pre class="r"><code>bl                                     %&gt;%
-  st_intersection(nbd)                 -&gt; bl_nbd_intersection</code></pre>
-<pre><code>## Warning: attribute variables are assumed to be spatially constant throughout all
-## geometries</code></pre>
-<pre class="r"><code>glimpse(bl_nbd_intersection)</code></pre>
-<pre><code>## Rows: 22,324
-## Columns: 15
-## $ bl_id      &lt;chr&gt; &quot;290959808021031&quot;, &quot;290959808021032&quot;, &quot;290959808021020&quot;, &quot;2~
-## $ bl_name    &lt;chr&gt; &quot;Block 1031&quot;, &quot;Block 1032&quot;, &quot;Block 1020&quot;, &quot;Block 1021&quot;, &quot;Bl~
-## $ bl_area    &lt;dbl&gt; 36687.410, 3756.812, 107163.297, 88947.848, 12892.759, 5052~
-## $ NID        &lt;dbl&gt; 244, 244, 244, 244, 244, 244, 244, 244, 244, 244, 244, 244,~
-## $ AreaName   &lt;chr&gt; &quot;Truman Sports Complex&quot;, &quot;Truman Sports Complex&quot;, &quot;Truman S~
-## $ nbr_id     &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,~
-## $ CommunityD &lt;chr&gt; &quot;Blue Ridge&quot;, &quot;Blue Ridge&quot;, &quot;Blue Ridge&quot;, &quot;Blue Ridge&quot;, &quot;Bl~
+<div id="load-key-files" class="section level3">
+<h3>Load key files</h3>
+<p>Block groups</p>
+<pre class="r"><code>load(paste0(path_name, &quot;bg&quot;, &quot;.RData&quot;))
+glimpse(bg)</code></pre>
+<pre><code>## Rows: 1,684
+## Columns: 4
+## $ bg_id    &lt;chr&gt; &quot;201039819003&quot;, &quot;201030714004&quot;, &quot;201030711041&quot;, &quot;201030712051~
+## $ bg_name  &lt;chr&gt; &quot;Block Group 3&quot;, &quot;Block Group 4&quot;, &quot;Block Group 1&quot;, &quot;Block Gro~
+## $ bg_area  &lt;dbl&gt; 984975.5, 36602869.0, 18313082.5, 26007918.3, 11448660.8, 243~
+## $ geometry &lt;POLYGON [°]&gt; POLYGON ((-94.94756 39.3373..., POLYGON ((-95.18756 3~</code></pre>
+<p>Blocks</p>
+<pre class="r"><code>load(paste0(path_name, &quot;bl&quot;, &quot;.RData&quot;))
+glimpse(bl)</code></pre>
+<pre><code>## Rows: 39,903
+## Columns: 4
+## $ bl_id    &lt;chr&gt; &quot;200910518012010&quot;, &quot;200910514003006&quot;, &quot;200910515002005&quot;, &quot;200~
+## $ bl_name  &lt;chr&gt; &quot;Block 2010&quot;, &quot;Block 3006&quot;, &quot;Block 2005&quot;, &quot;Block 1009&quot;, &quot;Bloc~
+## $ bl_area  &lt;dbl&gt; 38500.823, 51711.677, 104537.047, 73933.762, 95854.528, 19934~
+## $ geometry &lt;POLYGON [°]&gt; POLYGON ((-94.64213 38.9774..., POLYGON ((-94.63966 3~</code></pre>
+<p>neighborhoods</p>
+<pre class="r"><code>load(paste0(path_name, &quot;nbd&quot;, &quot;.RData&quot;))
+glimpse(nbd)</code></pre>
+<pre><code>## Rows: 375
+## Columns: 12
+## $ NID        &lt;dbl&gt; 244.00, 241.00, 243.00, 245.00, 246.00, 247.00, 400.01, 400~
+## $ AreaName   &lt;chr&gt; &quot;Truman Sports Complex&quot;, &quot;Area 241&quot;, &quot;Swope Park&quot;, &quot;Area 24~
+## $ nbr_id     &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, ~
+## $ CommunityD &lt;chr&gt; &quot;Blue Ridge&quot;, &quot;Greater Downtown&quot;, &quot;Swope Park&quot;, &quot;Northeast ~
 ## $ id         &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,~
 ## $ label_long &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,~
 ## $ shid       &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,~
-## $ Shape_Leng &lt;dbl&gt; 22348.39, 22348.39, 22348.39, 22348.39, 22348.39, 22348.39,~
-## $ Shape_Le_1 &lt;dbl&gt; 22348.39, 22348.39, 22348.39, 22348.39, 22348.39, 22348.39,~
-## $ Shape_Area &lt;dbl&gt; 25684112, 25684112, 25684112, 25684112, 25684112, 25684112,~
-## $ label      &lt;chr&gt; &quot;Truman Sports Complex&quot;, &quot;Truman Sports Complex&quot;, &quot;Truman S~
-## $ geometry   &lt;GEOMETRY [°]&gt; POLYGON ((-94.47842 39.0453..., POLYGON ((-94.4758~</code></pre>
-<pre class="r"><code>bl_nbd_intersection                    %&gt;%
-  st_area                              %&gt;%
-  as.numeric                           %&gt;%
-  tibble                               %&gt;%
-  set_names(&quot;in_area&quot;)                 %&gt;%
-  bind_cols(bl_nbd_intersection)       %&gt;%
-  mutate(
-    bg_id=str_sub(bl_id, 1, 12))       %&gt;%
-  mutate(
-    bl_prop_in=in_area/bl_area)        %&gt;%
-  mutate(
-    bl_prop_in=round(bl_prop_in, 3))   %&gt;%   
-  select(
-    bg_id,
-    bl_id, 
-    NID, 
-    bl_prop_in)                       -&gt; bl_nbd_intersection
-Sys.time()</code></pre>
-<pre><code>## [1] &quot;2022-10-10 13:13:53 CDT&quot;</code></pre>
+## $ Shape_Leng &lt;dbl&gt; 22348.387, 7813.000, 47898.336, 60205.571, 28368.394, 54946~
+## $ Shape_Le_1 &lt;dbl&gt; 22348.387, 7813.000, 47898.336, 60205.571, 28368.394, 54946~
+## $ Shape_Area &lt;dbl&gt; 25684112, 3582073, 68578786, 184656719, 40242276, 57490375,~
+## $ geometry   &lt;MULTIPOLYGON [°]&gt; MULTIPOLYGON (((-94.49215 3..., MULTIPOLYGON (~
+## $ label      &lt;chr&gt; &quot;Truman Sports Complex&quot;, &quot;Area 241&quot;, &quot;Swope Park&quot;, &quot;Area 24~</code></pre>
+<p>neighborhoods intersections</p>
+<pre class="r"><code>load(paste0(path_name, &quot;nbd-intersections&quot;, &quot;.RData&quot;))
+glimpse(bg_nbd_intersection)</code></pre>
+<pre><code>## Rows: 2,657
+## Columns: 3
+## $ bg_id      &lt;chr&gt; &quot;290950163001&quot;, &quot;290950105001&quot;, &quot;290950170002&quot;, &quot;2909501070~
+## $ NID        &lt;dbl&gt; 244, 244, 244, 244, 244, 244, 244, 241, 241, 241, 243, 243,~
+## $ bg_prop_in &lt;dbl&gt; 0.000, 0.000, 0.000, 0.000, 0.003, 0.903, 0.000, 0.064, 0.2~</code></pre>
 <pre class="r"><code>glimpse(bl_nbd_intersection)</code></pre>
 <pre><code>## Rows: 22,324
 ## Columns: 4
@@ -462,63 +458,152 @@ Sys.time()</code></pre>
 ## $ bl_id      &lt;chr&gt; &quot;290959808021031&quot;, &quot;290959808021032&quot;, &quot;290959808021020&quot;, &quot;2~
 ## $ NID        &lt;dbl&gt; 244, 244, 244, 244, 244, 244, 244, 244, 244, 244, 244, 244,~
 ## $ bl_prop_in &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,~</code></pre>
+<pre class="r"><code>load(paste0(path_name, &quot;red&quot;, &quot;.RData&quot;))
+glimpse(red)</code></pre>
+<pre><code>## Rows: 39,903
+## Columns: 4
+## $ bg_id  &lt;chr&gt; &quot;200910500001&quot;, &quot;200910500001&quot;, &quot;200910500001&quot;, &quot;200910500001&quot;,~
+## $ bl_id  &lt;chr&gt; &quot;200910500001000&quot;, &quot;200910500001001&quot;, &quot;200910500001002&quot;, &quot;20091~
+## $ people &lt;dbl&gt; 52, 47, 51, 58, 138, 68, 35, 81, 39, 37, 35, 51, 52, 106, 45, 8~
+## $ units  &lt;dbl&gt; 33, 29, 27, 26, 70, 34, 18, 28, 12, 11, 15, 17, 21, 49, 20, 39,~</code></pre>
 </div>
-<div id="intersect-block-groups-and-neighorhoods" class="section level3">
-<h3>Intersect block groups and neighorhoods</h3>
+<div id="counts" class="section level3">
+<h3>Counts</h3>
+<pre class="r"><code># This code will compute the count of a vector
+# and display it with commas if it is greater
+# than 999.
+nice_count &lt;- function(x) {
+  x                                    %&gt;%
+    unique                             %&gt;%
+    length                             %&gt;%
+    format(big.mark=&quot;,&quot;)
+}</code></pre>
+<p>There are 7 counties in the Kansas City metropolitan area.</p>
+<p>There are 0 neighborhoods in the 7 counties.</p>
+<p>There are 1,684 block groups in the 7 counties. 877 of these
+intersect partially or completely with one or more neighborhoods.</p>
+<p>There are 39,903 blocks in the 7 counties. 16,847 of these intersect
+partially or completely with one or more neighborhoods.</p>
+</div>
+<div id="get-block-group-list" class="section level3">
+<h3>Get block group list</h3>
 <p>Identify the list of all block groups that partially or completely
-intersect with neighborhoods.</p>
-<pre class="r"><code>Sys.time()</code></pre>
-<pre><code>## [1] &quot;2022-10-10 13:13:53 CDT&quot;</code></pre>
-<pre class="r"><code>bg                                     %&gt;%
-  st_intersection(nbd)                 -&gt; bg_nbd_intersection</code></pre>
-<pre><code>## Warning: attribute variables are assumed to be spatially constant throughout all
-## geometries</code></pre>
-<pre class="r"><code>glimpse(bg_nbd_intersection)</code></pre>
-<pre><code>## Rows: 2,657
-## Columns: 15
-## $ bg_id      &lt;chr&gt; &quot;290950163001&quot;, &quot;290950105001&quot;, &quot;290950170002&quot;, &quot;2909501070~
-## $ bg_name    &lt;chr&gt; &quot;Block Group 1&quot;, &quot;Block Group 1&quot;, &quot;Block Group 2&quot;, &quot;Block G~
-## $ bg_area    &lt;dbl&gt; 8038941.1, 1118689.0, 1477526.4, 2184304.3, 4343336.9, 2625~
-## $ NID        &lt;dbl&gt; 244, 244, 244, 244, 244, 244, 244, 241, 241, 241, 243, 243,~
-## $ AreaName   &lt;chr&gt; &quot;Truman Sports Complex&quot;, &quot;Truman Sports Complex&quot;, &quot;Truman S~
-## $ nbr_id     &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4,~
-## $ CommunityD &lt;chr&gt; &quot;Blue Ridge&quot;, &quot;Blue Ridge&quot;, &quot;Blue Ridge&quot;, &quot;Blue Ridge&quot;, &quot;Bl~
-## $ id         &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,~
-## $ label_long &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,~
-## $ shid       &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,~
-## $ Shape_Leng &lt;dbl&gt; 22348.39, 22348.39, 22348.39, 22348.39, 22348.39, 22348.39,~
-## $ Shape_Le_1 &lt;dbl&gt; 22348.39, 22348.39, 22348.39, 22348.39, 22348.39, 22348.39,~
-## $ Shape_Area &lt;dbl&gt; 25684112, 25684112, 25684112, 25684112, 25684112, 25684112,~
-## $ label      &lt;chr&gt; &quot;Truman Sports Complex&quot;, &quot;Truman Sports Complex&quot;, &quot;Truman S~
-## $ geometry   &lt;GEOMETRY [°]&gt; MULTIPOLYGON (((-94.49868 3..., MULTIPOLYGON (((-9~</code></pre>
+intersect with any neighborhoods.</p>
 <pre class="r"><code>bg_nbd_intersection                    %&gt;%
-  st_area                              %&gt;%
-  as.numeric                           %&gt;%
-  tibble                               %&gt;%
-  set_names(&quot;in_area&quot;)                 %&gt;%
-  bind_cols(bg_nbd_intersection)       %&gt;%
-  mutate(bg_prop_in=in_area/bg_area)   %&gt;%
+  pull(bg_id)                          %&gt;%
+  unique                                -&gt; bg_list
+glimpse(bg_list)</code></pre>
+<pre><code>##  chr [1:877] &quot;290950163001&quot; &quot;290950105001&quot; &quot;290950170002&quot; &quot;290950107022&quot; ...</code></pre>
+</div>
+<div id="get-block-list" class="section level3">
+<h3>Get block list</h3>
+<p>Now get a list of all census blocks that lie inside any of these
+block groups. Merge with red to get population and housing unit
+counts.</p>
+<pre class="r"><code>bl                                     %&gt;%
+  pull(bl_id)                          %&gt;%
+  str_sub(1, 12)                       %&gt;%
+  bind_cols(bl$bl_id)                  %&gt;%
+  set_names(c(&quot;bg_id&quot;, &quot;bl_id&quot;))       %&gt;%
+  
+  filter(bg_id %in% bg_list)           %&gt;%
+  inner_join(red, 
+    by=c(&quot;bg_id&quot;, &quot;bl_id&quot;))               -&gt; bl_list</code></pre>
+<pre><code>## New names:</code></pre>
+<pre class="r"><code>glimpse(bl_list)</code></pre>
+<pre><code>## Rows: 19,859
+## Columns: 4
+## $ bg_id  &lt;chr&gt; &quot;200910533013&quot;, &quot;200910533024&quot;, &quot;200910533024&quot;, &quot;200910534291&quot;,~
+## $ bl_id  &lt;chr&gt; &quot;200910533013008&quot;, &quot;200910533024013&quot;, &quot;200910533024008&quot;, &quot;20091~
+## $ people &lt;dbl&gt; 54, 254, 125, 39, 32, 86, 37, 58, 35, 51, 47, 45, 52, 78, 182, ~
+## $ units  &lt;dbl&gt; 27, 82, 36, 17, 9, 27, 11, 26, 15, 27, 29, 20, 33, 41, 94, 14, ~</code></pre>
+</div>
+<div id="calculate-counts-and-areas-of-intersections" class="section level3">
+<h3>Calculate counts and areas of intersections</h3>
+<pre class="r"><code>bl_nbd_intersection                     %&gt;%
+  full_join(bl_list, 
+    by=c(&quot;bg_id&quot;, &quot;bl_id&quot;))            %&gt;%
+  replace_na(list(bl_prop_in=0))       %&gt;%
+  replace_na(list(nbd_id=0))            %&gt;%
   mutate(
-    bg_prop_in=round(bg_prop_in, 3))   %&gt;%
+    people_in=
+      round(people*bl_prop_in))        %&gt;%
+  mutate(
+    units_in=
+      round(units*bl_prop_in))         %&gt;%
   select(
     bg_id,
-    NID, 
-    bg_prop_in)                       -&gt; bg_nbd_intersection
-Sys.time()</code></pre>
-<pre><code>## [1] &quot;2022-10-10 13:17:46 CDT&quot;</code></pre>
-<pre class="r"><code>glimpse(bg_nbd_intersection)</code></pre>
-<pre><code>## Rows: 2,657
+    bl_id,
+    NID,
+    bl_prop_in,
+    people,
+    people_in,
+    units,
+    units_in)                           -&gt; bl_counts
+
+glimpse(bl_counts)</code></pre>
+<pre><code>## Rows: 25,336
+## Columns: 8
+## $ bg_id      &lt;chr&gt; &quot;290959808021&quot;, &quot;290959808021&quot;, &quot;290959808021&quot;, &quot;2909598080~
+## $ bl_id      &lt;chr&gt; &quot;290959808021031&quot;, &quot;290959808021032&quot;, &quot;290959808021020&quot;, &quot;2~
+## $ NID        &lt;dbl&gt; 244, 244, 244, 244, 244, 244, 244, 244, 244, 244, 244, 244,~
+## $ bl_prop_in &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,~
+## $ people     &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 102, 69, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,~
+## $ people_in  &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,~
+## $ units      &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 54, 28, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, ~
+## $ units_in   &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0,~</code></pre>
+</div>
+<div id="calculate-counts-for-block-groups" class="section level3">
+<h3>Calculate counts for block groups</h3>
+<pre class="r"><code>red                                    %&gt;%
+  group_by(bg_id)                      %&gt;%
+  summarize(
+    people=sum(people),
+    units=sum(units))                   -&gt; count_total
+glimpse(count_total)</code></pre>
+<pre><code>## Rows: 1,684
 ## Columns: 3
-## $ bg_id      &lt;chr&gt; &quot;290950163001&quot;, &quot;290950105001&quot;, &quot;290950170002&quot;, &quot;2909501070~
-## $ NID        &lt;dbl&gt; 244, 244, 244, 244, 244, 244, 244, 241, 241, 241, 243, 243,~
-## $ bg_prop_in &lt;dbl&gt; 0.000, 0.000, 0.000, 0.000, 0.003, 0.903, 0.000, 0.064, 0.2~</code></pre>
+## $ bg_id  &lt;chr&gt; &quot;200910500001&quot;, &quot;200910500002&quot;, &quot;200910500003&quot;, &quot;200910500004&quot;,~
+## $ people &lt;dbl&gt; 744, 695, 751, 817, 680, 1378, 1313, 1196, 1196, 684, 919, 1004~
+## $ units  &lt;dbl&gt; 341, 311, 377, 371, 284, 612, 648, 549, 625, 332, 468, 529, 548~</code></pre>
+<pre class="r"><code>bl_counts                              %&gt;%
+  group_by(bg_id, NID)                 %&gt;%
+  summarize(
+    people_in=sum(people_in),
+    units_in=sum(units_in))            %&gt;%
+  filter(NID &gt; 0)                       -&gt; count_in</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;bg_id&#39;. You can override using the
+## `.groups` argument.</code></pre>
+<pre class="r"><code>glimpse(count_in)</code></pre>
+<pre><code>## Rows: 2,048
+## Columns: 4
+## Groups: bg_id [754]
+## $ bg_id     &lt;chr&gt; &quot;200910500001&quot;, &quot;200910500001&quot;, &quot;200910500002&quot;, &quot;20091050000~
+## $ NID       &lt;dbl&gt; 433.01, 452.00, 452.00, 452.00, 433.01, 434.00, 433.01, 434.~
+## $ people_in &lt;dbl&gt; 1, 0, 1, 0, 0, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, ~
+## $ units_in  &lt;dbl&gt; 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ~</code></pre>
+<pre class="r"><code>count_in                               %&gt;%
+  inner_join(count_total, by=&quot;bg_id&quot;)  %&gt;%
+  filter(NID &gt; 0)                       -&gt; bg_counts
+glimpse(bg_counts)</code></pre>
+<pre><code>## Rows: 2,048
+## Columns: 6
+## Groups: bg_id [754]
+## $ bg_id     &lt;chr&gt; &quot;200910500001&quot;, &quot;200910500001&quot;, &quot;200910500002&quot;, &quot;20091050000~
+## $ NID       &lt;dbl&gt; 433.01, 452.00, 452.00, 452.00, 433.01, 434.00, 433.01, 434.~
+## $ people_in &lt;dbl&gt; 1, 0, 1, 0, 0, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, ~
+## $ units_in  &lt;dbl&gt; 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ~
+## $ people    &lt;dbl&gt; 744, 744, 695, 751, 1313, 1313, 1196, 643, 630, 778, 778, 12~
+## $ units     &lt;dbl&gt; 341, 341, 311, 377, 648, 648, 549, 315, 444, 287, 287, 461, ~</code></pre>
 </div>
 <div id="save-the-information-in-an-rdata-file." class="section level3">
 <h3>Save the information in an RData file.</h3>
 <pre class="r"><code>save(
-  bl_nbd_intersection,
-  bg_nbd_intersection,
-  file=&quot;../Data/nbd-intersections.RData&quot;)</code></pre>
+  bg_counts,
+  bg_list,
+  bl_counts,
+  bl_list,
+  file=&quot;../Data/nbd-weights.RData&quot;)</code></pre>
 </div>
 
 

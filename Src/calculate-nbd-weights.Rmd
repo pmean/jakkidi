@@ -111,7 +111,7 @@ of these intersect partially or completely with one or more neighborhoods.
 Identify the list of all block groups that partially or completely intersect with any neighborhoods.
 
 ```{r intersect-bg}
-bg_cd_intersection                     %>%
+bg_nbd_intersection                    %>%
   pull(bg_id)                          %>%
   unique                                -> bg_list
 glimpse(bg_list)
@@ -151,7 +151,7 @@ bl_nbd_intersection                     %>%
   select(
     bg_id,
     bl_id,
-    nbd_id,
+    NID,
     bl_prop_in,
     people,
     people_in,
@@ -172,16 +172,16 @@ red                                    %>%
 glimpse(count_total)
 
 bl_counts                              %>%
-  group_by(bg_id, nbd_id)              %>%
+  group_by(bg_id, NID)                 %>%
   summarize(
     people_in=sum(people_in),
     units_in=sum(units_in))            %>%
-  filter(nbd_id > 0)                    -> count_in
+  filter(NID > 0)                       -> count_in
 glimpse(count_in)
 
 count_in                               %>%
   inner_join(count_total, by="bg_id")  %>%
-  filter(nbd_id > 0)                    -> bg_counts
+  filter(NID > 0)                       -> bg_counts
 glimpse(bg_counts)
 ```
 ### Save the information in an RData file.
