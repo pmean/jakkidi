@@ -45,7 +45,7 @@ load(paste0(path_name, "nbd", ".RData"))
 Identify the list of all blocks that partially or completely intersect with neighborhoods. Calculate the block area and add it back to the data frame.
 
 ```{r intersect-bl}
-nbd <- nbd[1:3,]
+
 bl                                     %>%
   st_intersection(nbd)                 -> bl_nbd_intersection
 glimpse(bl_nbd_intersection)
