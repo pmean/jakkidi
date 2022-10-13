@@ -9,7 +9,6 @@ knit: (function(inputFile, encoding) {
 ---
 This program will calculate which census blocks intersect with which neighborhoods. It relies on information stored in
 
-wd
 
 + bg.RData
 + bl.RData
@@ -92,7 +91,7 @@ nice_count <- function(x) {
 
 There are 7 counties in the Kansas City metropolitan area.
 
-There are `r nice_count(nbd$nbd_id)` neighborhoods in the 7 counties.
+There are `r nice_count(nbd$NID)` neighborhoods in the 7 counties.
 
 There are 
 `r nice_count(bg$bg_id)`
@@ -111,7 +110,7 @@ of these intersect partially or completely with one or more neighborhoods.
 Identify the list of all block groups that partially or completely intersect with any neighborhoods.
 
 ```{r intersect-bg}
-bg_cd_intersection                     %>%
+bg_nbd_intersection                    %>%
   pull(bg_id)                          %>%
   unique                                -> bg_list
 glimpse(bg_list)
@@ -141,7 +140,7 @@ bl_nbd_intersection                     %>%
   full_join(bl_list, 
     by=c("bg_id", "bl_id"))            %>%
   replace_na(list(bl_prop_in=0))       %>%
-  replace_na(list(nbd_id=0))            %>%
+  replace_na(list(NID=0))            %>%
   mutate(
     people_in=
       round(people*bl_prop_in))        %>%
@@ -151,7 +150,7 @@ bl_nbd_intersection                     %>%
   select(
     bg_id,
     bl_id,
-    nbd_id,
+    NID,
     bl_prop_in,
     people,
     people_in,
@@ -168,20 +167,20 @@ red                                    %>%
   group_by(bg_id)                      %>%
   summarize(
     people=sum(people),
-    units=sum(units))                   -> count_total
+    units=sum(units))                  -> count_total
 glimpse(count_total)
 
 bl_counts                              %>%
-  group_by(bg_id, nbd_id)              %>%
+  group_by(bg_id, NID)                 %>%
   summarize(
     people_in=sum(people_in),
     units_in=sum(units_in))            %>%
-  filter(nbd_id > 0)                    -> count_in
+  filter(NID > 0)                      -> count_in
 glimpse(count_in)
 
 count_in                               %>%
   inner_join(count_total, by="bg_id")  %>%
-  filter(nbd_id > 0)                    -> bg_counts
+  filter(NID > 0)                      -> bg_counts
 glimpse(bg_counts)
 ```
 ### Save the information in an RData file.

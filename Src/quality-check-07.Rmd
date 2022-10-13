@@ -1,0 +1,203 @@
+---
+title: "Quality check 07, Block group intersections with neigh"
+author: "Satya Golla and Steve Simon"
+date: "Created 2022-03-21"
+output: html_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding,
+  output_dir = "../results", output_format = "all") })  
+---
+
+This program examines block groups that only partially intersect with community districts.
+
+### Load relevant files
+
+```{r setup}
+# Important abbreviations:
+#    bg = block group
+#    bl = block
+#    cd = community district
+#    co = county
+#    nbd=neighborhood
+#    tr = tract
+
+library(glue)
+library(magrittr)
+library(sf)
+library(tidyverse)
+library(dplyr)
+path_name <- "../data/"
+```
+
+### Contents of bg
+
+```{r}
+load(glue("{path_name}bg.RData"))
+glimpse(bg)
+```
+
+### Contents of bl
+
+```{r}
+load(glue("{path_name}bl.RData"))
+glimpse(bl)
+```
+
+### Contents of cd
+
+```{r}
+load(glue("{path_name}cd.RData"))
+glimpse(cd)
+```
+
+### Contents of co
+
+```{r}
+load(glue("{path_name}co.RData"))
+glimpse(co)
+```
+
+### Contents of cd-intersections
+
+```{r}
+load(glue("{path_name}cd-intersections.RData"))
+glimpse(tr_cd_intersection)
+glimpse(bg_cd_intersection)
+glimpse(bl_cd_intersection)
+```
+
+### Contents of cd-weights
+
+```{r}
+load(glue("{path_name}cd-weights.RData"))
+glimpse(bg_counts)
+glimpse(bg_list)
+glimpse(bl_counts)
+glimpse(bl_list)
+```
+
+### Subset co to seven counties
+
+```{r}
+clist <- c(
+  "20091",
+  "20103",
+  "20209",
+  "29037",
+  "29047",
+  "29095",
+  "29165")
+co$data                                     %>%
+  filter(GEOID %in% clist)             -> co
+glimpse(co)
+```
+
+### Get id values for all community districts
+
+```{r}
+cd                                     %>%
+  tibble                               %>%
+  distinct(cd_id)                      %>%
+  arrange(cd_id)                       %>%
+  pull(cd_id)                           -> cd_list
+```
+
+### Draw an overview map
+
+```{r}
+co_points <- st_point_on_surface(co)
+co_coords <- as.data.frame(st_coordinates(co_points))
+co_coords$NAME <- co$NAME
+
+ggplot()+
+  geom_sf(
+    data=co, 
+    color="darkred", 
+    fill=NA)                            +
+  geom_text(
+    data=co_coords, 
+    aes(X, Y, label=NAME))              +
+  xlab("Longitude")                     +
+  ylab("Latitude")                      -> overview_map
+plot(overview_map)
+```
+
+### High level view
+
+```{r loop}
+nbd [1:5,]                              %>%
+  pull(NID)                           -> interesting_nbd
+for (i_cd in interesting_nbd) {
+  # Draw community district in green atop
+  # counties outlined in red
+  cd_subset <- filter(cd, cd_id==i_cd) 
+  ti <- cd_subset$cd_name
+  overview_map                          +
+    ggtitle(ti)                         +
+    geom_sf(
+      data=cd_subset,
+      aes(),
+      fill="lightgreen",
+      color=NA)                         -> map1
+  plot(map1)
+
+  # draw community districts in green with
+  # block groups outlined in red.
+  bg_cd_intersection                   %>%
+    filter(cd_id==i_cd)                %>%
+    filter(bg_prop_in > 0.10)          %>%
+    pull(bg_id)                         -> bg_list
+  bg                                   %>%
+    filter(bg_id %in% bg_list)          -> bg_subset
+
+  bg_points <- st_point_on_surface(bg_subset)
+  bg_coords <- as.data.frame(st_coordinates(bg_points))
+  bg_coords$NAME <- str_sub(bg_subset$bg_id, 6, 12)
+
+  ggplot(cd_subset)                     +
+    ggtitle(ti)                         +
+    xlab("Longitude")                   +
+    ylab("Latitude")                    +
+      geom_sf(
+        data=cd_subset,
+        aes(),
+        fill="lightgreen",
+        color=NA)                       +
+    geom_text(
+      data=bg_coords, 
+      aes(X, Y, label=NAME))            +
+    geom_sf(
+      data=bg_subset,
+      aes(),
+      fill=NA,
+      color="darkred")                  -> map2
+  plot(map2)
+
+  # draw block groups and blocks outlined
+  # in red atop community district in green.
+  for (i_bg in bg_list) {
+    bg_cd_intersection                 %>%
+      filter(cd_id==i_cd)              %>%
+      filter(bg_id==i_bg)              %>%
+      pull(bg_prop_in)                  -> p
+    if (p < 0.1) next
+    if (p > 0.9) next
+    bl_subset <- filter(bl, str_sub(bl_id, 1, 12)==i_bg)
+    ggplot(cd_subset)                   +
+      ggtitle(ti)                       +
+      xlab("Longitude")                 +
+      ylab("Latitude")                  +
+    geom_sf(
+      data=cd_subset,
+      aes(),
+      fill="lightgreen",
+      color=NA)                         +
+    geom_sf(
+      data=bl_subset,
+      aes(),
+      fill=NA,
+      color="darkred")                  -> map3
+    plot(map3)
+  }
+}
+```
