@@ -45,7 +45,7 @@ load(paste0(path_name, "nbd", ".RData"))
 Identify the list of all blocks that partially or completely intersect with neighborhoods. Calculate the block area and add it back to the data frame.
 
 ```{r intersect-bl}
-
+Sys.time()
 bl                                     %>%
   st_intersection(nbd)                 -> bl_nbd_intersection
 glimpse(bl_nbd_intersection)
@@ -67,6 +67,7 @@ bl_nbd_intersection                    %>%
     bl_id, 
     NID, 
     bl_prop_in)                       -> bl_nbd_intersection
+Sys.time()
 glimpse(bl_nbd_intersection)
 ```
 
@@ -76,6 +77,7 @@ glimpse(bl_nbd_intersection)
 Identify the list of all block groups that partially or completely intersect with neighborhoods.
 
 ```{r intersect-bg}
+Sys.time()
 bg                                     %>%
   st_intersection(nbd)                 -> bg_nbd_intersection
 glimpse(bg_nbd_intersection)
@@ -93,13 +95,13 @@ bg_nbd_intersection                    %>%
     bg_id,
     NID, 
     bg_prop_in)                       -> bg_nbd_intersection
+Sys.time()
 glimpse(bg_nbd_intersection)
 ```
 
 ### Save the information in an RData file.
 
 ```{r save}
-
 save(
   bl_nbd_intersection,
   bg_nbd_intersection,
