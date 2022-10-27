@@ -1,5 +1,5 @@
 ---
-title: "Quality check 07, Block group intersections with neigh"
+title: "Quality check 07, Block group intersections with neighborhoods"
 author: "Satya Golla and Steve Simon"
 date: "Created 2022-03-21"
 output: html_document
@@ -43,11 +43,11 @@ load(glue("{path_name}bl.RData"))
 glimpse(bl)
 ```
 
-### Contents of cd
+### Contents of nbd
 
 ```{r}
-load(glue("{path_name}cd.RData"))
-glimpse(cd)
+load(glue("{path_name}nbd.RData"))
+glimpse(nbd)
 ```
 
 ### Contents of co
@@ -60,16 +60,16 @@ glimpse(co)
 ### Contents of cd-intersections
 
 ```{r}
-load(glue("{path_name}cd-intersections.RData"))
-glimpse(tr_cd_intersection)
-glimpse(bg_cd_intersection)
-glimpse(bl_cd_intersection)
+load(glue("{path_name}nbd-intersections.RData"))
+# glimpse(tr_nbd_intersection)
+glimpse(bg_nbd_intersection)
+glimpse(bl_nbd_intersection)
 ```
 
-### Contents of cd-weights
+### Contents of nbd-weights
 
 ```{r}
-load(glue("{path_name}cd-weights.RData"))
+load(glue("{path_name}nbd-weights.RData"))
 glimpse(bg_counts)
 glimpse(bg_list)
 glimpse(bl_counts)
@@ -87,19 +87,19 @@ clist <- c(
   "29047",
   "29095",
   "29165")
-co$data                                     %>%
+co                                    %>%
   filter(GEOID %in% clist)             -> co
 glimpse(co)
 ```
 
-### Get id values for all community districts
+### Get id values for all neighborhoods
 
 ```{r}
-cd                                     %>%
+nbd                                    %>%
   tibble                               %>%
-  distinct(cd_id)                      %>%
-  arrange(cd_id)                       %>%
-  pull(cd_id)                           -> cd_list
+  distinct(NID)                        %>%
+  arrange(NID)                         %>%
+  pull(NID)                             -> nbd_list
 ```
 
 ### Draw an overview map
@@ -125,17 +125,17 @@ plot(overview_map)
 ### High level view
 
 ```{r loop}
-nbd [1:5,]                              %>%
-  pull(NID)                           -> interesting_nbd
-for (i_cd in interesting_nbd) {
+nbd                                    %>%
+  pull(NID)                             -> interesting_nbd
+for (i_NID in interesting_nbd) {
   # Draw community district in green atop
   # counties outlined in red
-  cd_subset <- filter(cd, cd_id==i_cd) 
-  ti <- cd_subset$cd_name
+  nbd_subset <- filter(nbd, NID==i_NID) 
+  ti <- nbd_subset$AreaName
   overview_map                          +
     ggtitle(ti)                         +
     geom_sf(
-      data=cd_subset,
+      data=nbd_subset,
       aes(),
       fill="lightgreen",
       color=NA)                         -> map1
@@ -143,9 +143,9 @@ for (i_cd in interesting_nbd) {
 
   # draw community districts in green with
   # block groups outlined in red.
-  bg_cd_intersection                   %>%
-    filter(cd_id==i_cd)                %>%
-    filter(bg_prop_in > 0.10)          %>%
+  bg_nbd_intersection                  %>%
+    filter(NID==i_NID)                 %>%
+    filter(bg_prop_in > 0.01)          %>%
     pull(bg_id)                         -> bg_list
   bg                                   %>%
     filter(bg_id %in% bg_list)          -> bg_subset
@@ -154,12 +154,12 @@ for (i_cd in interesting_nbd) {
   bg_coords <- as.data.frame(st_coordinates(bg_points))
   bg_coords$NAME <- str_sub(bg_subset$bg_id, 6, 12)
 
-  ggplot(cd_subset)                     +
+  ggplot(nbd_subset)                    +
     ggtitle(ti)                         +
     xlab("Longitude")                   +
     ylab("Latitude")                    +
       geom_sf(
-        data=cd_subset,
+        data=nbd_subset,
         aes(),
         fill="lightgreen",
         color=NA)                       +
@@ -176,19 +176,20 @@ for (i_cd in interesting_nbd) {
   # draw block groups and blocks outlined
   # in red atop community district in green.
   for (i_bg in bg_list) {
-    bg_cd_intersection                 %>%
-      filter(cd_id==i_cd)              %>%
+    next
+    bg_nbd_intersection                %>%
+      filter(NID==i_NID)               %>%
       filter(bg_id==i_bg)              %>%
       pull(bg_prop_in)                  -> p
     if (p < 0.1) next
     if (p > 0.9) next
     bl_subset <- filter(bl, str_sub(bl_id, 1, 12)==i_bg)
-    ggplot(cd_subset)                   +
+    ggplot(nbd_subset)                  +
       ggtitle(ti)                       +
       xlab("Longitude")                 +
       ylab("Latitude")                  +
     geom_sf(
-      data=cd_subset,
+      data=nbd_subset,
       aes(),
       fill="lightgreen",
       color=NA)                         +
