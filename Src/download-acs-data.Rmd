@@ -121,7 +121,7 @@ get_acs(
   year = 2020)
 ```
 
-
+### B01001 tables
 
 ```{r}
 # Note: Detail tables (B) are available in the five year
@@ -138,6 +138,7 @@ get_acs(
   year = 2020)
 ```
 
+### B13002 tables
 
 ```{r}
 # But some estimates are still only available in the
