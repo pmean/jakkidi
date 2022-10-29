@@ -98,7 +98,7 @@ the [basic usage vignette][walk1] for tidycensus.
 ```{r}
 # Note: Data Profiles (DP) are available in the five year
 # ACS data only down to the tract level.
-vlist <- c("DP04_0016", "DP04_0024", "DP04_0025", "DP04_0026")
+vlist<- c("DP04_0016", "DP04_0024", "DP04_0025", "DP04_0026")
 load_variables(2020, "acs5", cache = TRUE) %>%
   filter(name %in% vlist)
 
@@ -122,6 +122,7 @@ get_acs(
 ```
 
 ### B01001 tables
+https://pearson.socialexplorer.com/data/ACS2016/metadata/?ds=SE&table=B01001
 
 ```{r}
 # Note: Detail tables (B) are available in the five year
@@ -139,6 +140,7 @@ get_acs(
 ```
 
 ### B13002 tables
+https://api.census.gov/data/2020/acs/acs5/groups/B13002.html
 
 ```{r}
 # But some estimates are still only available in the
@@ -161,7 +163,9 @@ get_acs(
   county="Jackson",
   year = 2020)
 ```
+###"B21001"tables
 
+https://data.census.gov/cedsci/table?q=Cedar%20Rapids%20veterans&tid=ACSDT5Y2020.B21001
 
 ```{r}
 vlist <- c("B21001_001", "B21001_002", "B21001_003")
@@ -182,7 +186,8 @@ get_acs(
   county="Jackson",
   year = 2020)
 ```
-
+###"B25001" tables
+https://data.census.gov/cedsci/table?q=housing%20units&tid=ACSDT5Y2020.B25001
 
 ```{r}
 vlist <- c("B25001_001", "B25002_001", "B25002_002", "B25002_003")
@@ -203,7 +208,8 @@ get_acs(
   county="Jackson",
   year = 2020)
 ```
-
+###"B25002"
+https://data.census.gov/cedsci/table?q=Table%20B25002&tid=ACSDT1Y2019.B25002&hidePreview=true
 
 ```{r}
 vlist <- c("B25002_002", "B25003_001", "B25003_002", "B25003_003")
@@ -224,6 +230,8 @@ get_acs(
   county="Jackson",
   year = 2020)
 ```
+###"B25124"
+https://api.census.gov/data/2020/acs/acs5/groups/B25124.html
 
 ```{r}
 vlist <- c("B25124_002", "B25124_003", "B25124_010", "B25124_017", "B25124_024", "B25125_031")
@@ -265,6 +273,8 @@ get_acs(
   county="Jackson",
   year = 2020)
 ```
+###"B28001"
+https://data.census.gov/cedsci/table?q=broadband&tid=ACSST1Y2019.S2801
 
 ```{r}
 vlist <- c("B28001_001", "B28001_002", "B28001_011")
