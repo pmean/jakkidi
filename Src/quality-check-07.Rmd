@@ -1,6 +1,6 @@
 ---
 title: "Quality check 07, Block group intersections with neighborhoods"
-author: "Satya Golla and Steve Simon"
+author: "Satya Golla,Mounika Jakkidi and Steve Simon"
 date: "Created 2022-03-21"
 output: html_document
 knit: (function(inputFile, encoding) {
