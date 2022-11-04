@@ -1,6 +1,6 @@
 ---
 title: "Download ACS data using tidycensus"
-author: "Satya Golla and Steve Simon"
+author: "Satya Golla, Mounika Reddy,and Steve Simon"
 date: "Created 2022-09-04"
 output: html_document
 knit: (function(inputFile, encoding) {
@@ -274,7 +274,7 @@ get_acs(
   year = 2020)
 ```
 ###"B28001"
-https://data.census.gov/cedsci/table?q=broadband&tid=ACSST1Y2019.S2801
+https://data.census.gov/cedsci/all?q=B28001&d=ACS%201-Year%20Estimates%20Detailed%20Tables
 
 ```{r}
 vlist <- c("B28001_001", "B28001_002", "B28001_011")
@@ -295,4 +295,114 @@ get_acs(
   county="Jackson",
   year = 2020)
 ```
+###"B25003"
+https://api.census.gov/data/2020/acs/acs5/groups/B25003.html
 
+```{r}
+vlist <- c("B25003_001E", "B25003_002E", "B25003_003E")
+load_variables(2020, "acs5", cache = TRUE) %>%
+  filter(name %in% vlist)
+
+get_acs(
+  geography = "tract", 
+  variables = vlist, 
+  state="MO",
+  county="Jackson",
+  year = 2020)
+
+get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="MO",
+  county="Jackson",
+  year = 2020)
+```
+###"B09001"
+https://api.census.gov/data/2020/acs/acs5/groups/B09001.html
+
+```{r}
+vlist <- c("B09001_001", "B09001_002", "B09001_003","B09001_005")
+load_variables(2020, "acs5", cache = TRUE) %>%
+  filter(name %in% vlist)
+
+get_acs(
+  geography = "tract", 
+  variables = vlist, 
+  state="MO",
+  county="Jackson",
+  year = 2020)
+
+get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="MO",
+  county="Jackson",
+  year = 2020)
+```
+###"B17001"
+https://api.census.gov/data/2020/acs/acs5/groups/B17001.html
+
+```{r}
+vlist <- c("B17001_001", "B17001_002", "B17001_003","B17001_017","B17001_018")
+load_variables(2020, "acs5", cache = TRUE) %>%
+  filter(name %in% vlist)
+
+get_acs(
+  geography = "tract", 
+  variables = vlist, 
+  state="MO",
+  county="Jackson",
+  year = 2020)
+
+get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="MO",
+  county="Jackson",
+  year = 2020)
+```
+###"B27001" tables
+https://api.census.gov/data/2020/acs/acs5/groups/B27001.html
+
+```{r}
+vlist <- c("B27001_001", "B27001_002", "B27002_030")
+load_variables(2020, "acs5", cache = TRUE) %>%
+  filter(name %in% vlist)
+
+get_acs(
+  geography = "tract", 
+  variables = vlist, 
+  state="MO",
+  county="Jackson",
+  year = 2020)
+
+get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="MO",
+  county="Jackson",
+  year = 2020)
+```
+###"B21001"tables
+
+https://api.census.gov/data/2020/acs/acs5/groups/B992701.html
+
+```{r}
+vlist <- c("B992701_001", "B992701_002", "B992701_003")
+load_variables(2020, "acs5", cache = TRUE) %>%
+  filter(name %in% vlist)
+
+get_acs(
+  geography = "tract", 
+  variables = vlist, 
+  state="MO",
+  county="Jackson",
+  year = 2020)
+
+get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="MO",
+  county="Jackson",
+  year = 2020)
+```
