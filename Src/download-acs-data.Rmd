@@ -365,7 +365,7 @@ get_acs(
 https://api.census.gov/data/2020/acs/acs5/groups/B27001.html
 
 ```{r}
-vlist <- c("B27001_001", "B27001_002", "B27002_030")
+vlist <- c("B27001_001", "B27001_002", "B27001_030")
 load_variables(2020, "acs5", cache = TRUE) %>%
   filter(name %in% vlist)
 
@@ -383,7 +383,7 @@ get_acs(
   county="Jackson",
   year = 2020)
 ```
-###"B21001"tables
+###"B992701"tables
 
 https://api.census.gov/data/2020/acs/acs5/groups/B992701.html
 
