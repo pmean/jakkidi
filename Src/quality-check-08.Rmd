@@ -1,0 +1,87 @@
+---
+title: "Quality check 08, Associate ACS data with neighborhood weights"
+author: "Satya Golla, Mounika Jakkidi and Steve Simon"
+date: "Created 2022-11-10"
+output: html_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding,
+  output_dir = "../results", output_format = "all") })  
+---
+
+This program merges ACS data with the neighborhood weights (stored in bg_counts data frame).
+
+### Load relevant files
+
+```{r setup}
+# Important abbreviations:
+#    bg = block group
+#    bl = block
+#    cd = community district
+#    co = county
+#    nbd=neighborhood
+#    tr = tract
+
+library(dplyr)
+library(glue)
+library(magrittr)
+library(sf)
+library(tidycensus)
+library(tidyverse)
+path_name <- "../data/"
+```
+
+### Contents of nbd-weights
+
+```{r}
+load(glue("{path_name}nbd-weights.RData"))
+glimpse(bg_counts)
+```
+
+### Load counts for houses that are occupied/vacant
+
+```{r}
+vlist <- c("B25001_001", "B25002_001", "B25002_002", "B25002_003")
+load_variables(2020, "acs5", cache = TRUE) %>%
+  filter(name %in% vlist)
+
+b25002_jackson <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="MO",
+  county="Jackson",
+  year = 2020)
+
+b25002_wyandotte <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="KS",
+  county="Wyandotte",
+  year = 2020)
+
+b25002_jackson %>%
+  bind_rows(b25002_wyandotte) -> b25002_all_counties
+
+glimpse(b25002_all_counties)
+
+```
+
+### Merge with bg_counts
+
+```{r}
+b25002_all_counties %>%
+  inner_join(bg_counts, by=c("GEOID"="bg_id")) %>%
+  arrange(NID, GEOID, variable) -> b25002_nbd
+b25002_nbd
+```
+
+### Sum across neighborhoods
+
+```{r}
+b25002_nbd %>%
+  mutate(unit_weight=units_in/units) %>%
+  mutate(estimate=estimate*unit_weight) %>%
+  group_by(NID, variable) %>%
+  summarize(estimate=sum(estimate)) -> b25002_weighted
+glimpse(b25002_weighted)
+b25002_weighted[1:10, ]
+```
