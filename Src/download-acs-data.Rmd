@@ -12,6 +12,10 @@ This program downloads information from
 the American Community Survey and displays
 it on a map.
 
+information about variables in the ACS can be found here
+
+https://api.census.gov/data/2020/acs/acs5/groups.html
+
 ### Load relevant files
 
 ```{r setup}
