@@ -85,3 +85,335 @@ b25002_nbd %>%
 glimpse(b25002_weighted)
 b25002_weighted[1:10, ]
 ```
+
+### Load counts for houses that are owners occupied
+
+```{r}
+vlist <- c("B25124_002", "B25124_003", "B25124_010", "B25124_017", "B25124_024", "B25125_031")
+load_variables(2020, "acs5", cache = TRUE) %>%
+  filter(name %in% vlist)
+
+b25124_jackson <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="MO",
+  county="Jackson",
+  year = 2020)
+
+b25124_wyandotte <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="KS",
+  county="Wyandotte",
+  year = 2020)
+
+b25124_jackson %>%
+  bind_rows(b25124_wyandotte) -> b25124_all_counties
+
+glimpse(b25124_all_counties)
+
+```
+
+### Merge with bg_counts
+
+```{r}
+b25124_all_counties %>%
+  inner_join(bg_counts, by=c("GEOID"="bg_id")) %>%
+  arrange(NID, GEOID, variable) -> b25124_nbd
+b25124_nbd
+```
+### Sum across neighborhoods
+
+```{r}
+b25124_nbd %>%
+  mutate(unit_weight=units_in/units) %>%
+  mutate(estimate=estimate*unit_weight) %>%
+  group_by(NID, variable) %>%
+  summarize(estimate=sum(estimate)) -> b25124_weighted
+glimpse(b25002_weighted)
+b25124_weighted[1:10, ]
+```
+### Load counts for types of computers in household.
+
+```{r}
+vlist <- c("B28001_001", "B28001_002", "B28001_011")
+load_variables(2020, "acs5", cache = TRUE) %>%
+  filter(name %in% vlist)
+
+b28001_jackson <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="MO",
+  county="Jackson",
+  year = 2020)
+
+b28001_wyandotte <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="KS",
+  county="Wyandotte",
+  year = 2020)
+
+b28001_jackson %>%
+  bind_rows(b28001_wyandotte) -> b28001_all_counties
+
+glimpse(b28001_all_counties)
+
+```
+
+### Merge with bg_counts
+
+```{r}
+b28001_all_counties %>%
+  inner_join(bg_counts, by=c("GEOID"="bg_id")) %>%
+  arrange(NID, GEOID, variable) -> b28001_nbd
+b28001_nbd
+```
+### Sum across neighborhoods
+
+```{r}
+b28001_nbd %>%
+  mutate(unit_weight=units_in/units) %>%
+  mutate(estimate=estimate*unit_weight) %>%
+  group_by(NID, variable) %>%
+  summarize(estimate=sum(estimate)) -> b28001_weighted
+glimpse(b28001_weighted)
+b28001_weighted[1:10, ]
+```
+### Load counts for owners occuppied.
+
+```{r}
+vlist <- c("B25003_001E", "B25003_002E", "B25003_003E")
+load_variables(2020, "acs5", cache = TRUE) %>%
+  filter(name %in% vlist)
+
+b25003_jackson <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="MO",
+  county="Jackson",
+  year = 2020)
+
+b25003_wyandotte <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="KS",
+  county="Wyandotte",
+  year = 2020)
+
+b25003_jackson %>%
+  bind_rows(b28001_wyandotte) -> b25003_all_counties
+
+glimpse(b25003_all_counties)
+
+```
+
+### Merge with bg_counts
+
+```{r}
+b25003_all_counties %>%
+  inner_join(bg_counts, by=c("GEOID"="bg_id")) %>%
+  arrange(NID, GEOID, variable) -> b25003_nbd
+b25003_nbd
+```
+### Sum across neighborhoods
+
+```{r}
+b25003_nbd %>%
+  mutate(unit_weight=units_in/units) %>%
+  mutate(estimate=estimate*unit_weight) %>%
+  group_by(NID, variable) %>%
+  summarize(estimate=sum(estimate)) -> b25003_weighted
+glimpse(b25003_weighted)
+b25003_weighted[1:10, ]
+```
+### Load counts for population under 18years by Age.
+
+```{r}
+vlist <- c("B09001_001", "B09001_002", "B09001_003","B09001_005")
+load_variables(2020, "acs5", cache = TRUE) %>%
+  filter(name %in% vlist)
+
+b09001_jackson <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="MO",
+  county="Jackson",
+  year = 2020)
+
+b09001_wyandotte <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="KS",
+  county="Wyandotte",
+  year = 2020)
+
+b09001_jackson %>%
+  bind_rows(b09001_wyandotte) -> b09001_all_counties
+
+glimpse(b09001_all_counties)
+
+```
+
+### Merge with bg_counts
+
+```{r}
+b09001_all_counties %>%
+  inner_join(bg_counts, by=c("GEOID"="bg_id")) %>%
+  arrange(NID, GEOID, variable) -> b09001_nbd
+b09001_nbd
+```
+### Sum across neighborhoods
+
+```{r}
+b09001_nbd %>%
+  mutate(unit_weight=units_in/units) %>%
+  mutate(estimate=estimate*unit_weight) %>%
+  group_by(NID, variable) %>%
+  summarize(estimate=sum(estimate)) -> b09001_weighted
+glimpse(b09001_weighted)
+b09001_weighted[1:10, ]
+```
+### Load counts for poverty status in the past 12 months by sex by age.
+
+```{r}
+vlist <- c("B17001_001", "B17001_002", "B17001_003","B17001_017","B17001_018")
+load_variables(2020, "acs5", cache = TRUE) %>%
+  filter(name %in% vlist)
+
+b17001_jackson <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="MO",
+  county="Jackson",
+  year = 2020)
+
+b17001_wyandotte <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="KS",
+  county="Wyandotte",
+  year = 2020)
+
+b17001_jackson %>%
+  bind_rows(b17001_wyandotte) -> b17001_all_counties
+
+glimpse(b17001_all_counties)
+
+```
+
+### Merge with bg_counts
+
+```{r}
+b17001_all_counties %>%
+  inner_join(bg_counts, by=c("GEOID"="bg_id")) %>%
+  arrange(NID, GEOID, variable) -> b17001_nbd
+b17001_nbd
+```
+### Sum across neighborhoods
+
+```{r}
+b17001_nbd %>%
+  mutate(unit_weight=units_in/units) %>%
+  mutate(estimate=estimate*unit_weight) %>%
+  group_by(NID, variable) %>%
+  summarize(estimate=sum(estimate)) -> b17001_weighted
+glimpse(b17001_weighted)
+b17001_weighted[1:10, ]
+```
+### Load counts for Health insurance coverage status by sex by age
+
+```{r}
+vlist <- c("B27001_001", "B27001_002", "B27001_030")
+load_variables(2020, "acs5", cache = TRUE) %>%
+  filter(name %in% vlist)
+
+
+b27001_jackson <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="MO",
+  county="Jackson",
+  year = 2020)
+
+b27001_wyandotte <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="KS",
+  county="Wyandotte",
+  year = 2020)
+
+b27001_jackson %>%
+  bind_rows(b27001_wyandotte) -> b27001_all_counties
+
+glimpse(b27001_all_counties)
+
+```
+
+### Merge with bg_counts
+
+```{r}
+b27001_all_counties %>%
+  inner_join(bg_counts, by=c("GEOID"="bg_id")) %>%
+  arrange(NID, GEOID, variable) -> b27001_nbd
+b27001_nbd
+```
+### Sum across neighborhoods
+
+```{r}
+b27001_nbd %>%
+  mutate(unit_weight=units_in/units) %>%
+  mutate(estimate=estimate*unit_weight) %>%
+  group_by(NID, variable) %>%
+  summarize(estimate=sum(estimate)) -> b27001_weighted
+glimpse(b27001_weighted)
+b27001_weighted[1:10, ]
+```
+### Load counts for allocation of Health insurance coverage  
+
+```{r}
+vlist <- c("B992701_001", "B992701_002", "B992701_003")
+load_variables(2020, "acs5", cache = TRUE) %>%
+  filter(name %in% vlist)
+
+
+b992701_jackson <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="MO",
+  county="Jackson",
+  year = 2020)
+
+b992701_wyandotte <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="KS",
+  county="Wyandotte",
+  year = 2020)
+
+b992701_jackson %>%
+  bind_rows(b992701_wyandotte) -> b992701_all_counties
+
+glimpse(b992701_all_counties)
+
+```
+
+### Merge with bg_counts
+
+```{r}
+b992701_all_counties %>%
+  inner_join(bg_counts, by=c("GEOID"="bg_id")) %>%
+  arrange(NID, GEOID, variable) -> b992701_nbd
+b992701_nbd
+```
+### Sum across neighborhoods
+
+```{r}
+b992701_nbd %>%
+  mutate(unit_weight=units_in/units) %>%
+  mutate(estimate=estimate*unit_weight) %>%
+  group_by(NID, variable) %>%
+  summarize(estimate=sum(estimate)) -> b992701_weighted
+glimpse(b992701_weighted)
+b992701_weighted[1:10, ]
+```
