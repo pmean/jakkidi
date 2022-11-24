@@ -94,14 +94,14 @@ load_variables(2020, "acs5", cache = TRUE) %>%
   filter(name %in% vlist)
 
 b25124_jackson <- get_acs(
-  geography = "cbg", 
+  geography = "tract", 
   variables = vlist, 
   state="MO",
   county="Jackson",
   year = 2020)
 
 b25124_wyandotte <- get_acs(
-  geography = "cbg", 
+  geography = "tract", 
   variables = vlist, 
   state="KS",
   county="Wyandotte",
@@ -114,11 +114,11 @@ glimpse(b25124_all_counties)
 
 ```
 
-### Merge with bg_counts
+### Merge with tr_counts
 
 ```{r}
 b25124_all_counties %>%
-  inner_join(bg_counts, by=c("GEOID"="bg_id")) %>%
+  inner_join(tr_counts, by=c("GEOID"="tr_id")) %>%
   arrange(NID, GEOID, variable) -> b25124_nbd
 b25124_nbd
 ```
@@ -183,7 +183,7 @@ b28001_weighted[1:10, ]
 ### Load counts for owners occuppied.
 
 ```{r}
-vlist <- c("B25003_001E", "B25003_002E", "B25003_003E")
+vlist <- c("B25003_001", "B25003_002", "B25003_003")
 load_variables(2020, "acs5", cache = TRUE) %>%
   filter(name %in% vlist)
 
@@ -235,14 +235,14 @@ load_variables(2020, "acs5", cache = TRUE) %>%
   filter(name %in% vlist)
 
 b09001_jackson <- get_acs(
-  geography = "cbg", 
+  geography = "tract", 
   variables = vlist, 
   state="MO",
   county="Jackson",
   year = 2020)
 
 b09001_wyandotte <- get_acs(
-  geography = "cbg", 
+  geography = "tract", 
   variables = vlist, 
   state="KS",
   county="Wyandotte",
@@ -255,11 +255,11 @@ glimpse(b09001_all_counties)
 
 ```
 
-### Merge with bg_counts
+### Merge with tr_counts
 
 ```{r}
 b09001_all_counties %>%
-  inner_join(bg_counts, by=c("GEOID"="bg_id")) %>%
+  inner_join(tr_counts, by=c("GEOID"="tr_id")) %>%
   arrange(NID, GEOID, variable) -> b09001_nbd
 b09001_nbd
 ```
@@ -282,14 +282,14 @@ load_variables(2020, "acs5", cache = TRUE) %>%
   filter(name %in% vlist)
 
 b17001_jackson <- get_acs(
-  geography = "cbg", 
+  geography = "tract", 
   variables = vlist, 
   state="MO",
   county="Jackson",
   year = 2020)
 
 b17001_wyandotte <- get_acs(
-  geography = "cbg", 
+  geography = "tract", 
   variables = vlist, 
   state="KS",
   county="Wyandotte",
@@ -302,11 +302,11 @@ glimpse(b17001_all_counties)
 
 ```
 
-### Merge with bg_counts
+### Merge with tr_counts
 
 ```{r}
 b17001_all_counties %>%
-  inner_join(bg_counts, by=c("GEOID"="bg_id")) %>%
+  inner_join(tr_counts, by=c("GEOID"="tr_id")) %>%
   arrange(NID, GEOID, variable) -> b17001_nbd
 b17001_nbd
 ```
@@ -330,14 +330,14 @@ load_variables(2020, "acs5", cache = TRUE) %>%
 
 
 b27001_jackson <- get_acs(
-  geography = "cbg", 
+  geography = "tract", 
   variables = vlist, 
   state="MO",
   county="Jackson",
   year = 2020)
 
 b27001_wyandotte <- get_acs(
-  geography = "cbg", 
+  geography = "tract", 
   variables = vlist, 
   state="KS",
   county="Wyandotte",
@@ -350,11 +350,11 @@ glimpse(b27001_all_counties)
 
 ```
 
-### Merge with bg_counts
+### Merge with tr_counts
 
 ```{r}
 b27001_all_counties %>%
-  inner_join(bg_counts, by=c("GEOID"="bg_id")) %>%
+  inner_join(tr_counts, by=c("GEOID"="tr_id")) %>%
   arrange(NID, GEOID, variable) -> b27001_nbd
 b27001_nbd
 ```
@@ -378,14 +378,14 @@ load_variables(2020, "acs5", cache = TRUE) %>%
 
 
 b992701_jackson <- get_acs(
-  geography = "cbg", 
+  geography = "tract", 
   variables = vlist, 
   state="MO",
   county="Jackson",
   year = 2020)
 
 b992701_wyandotte <- get_acs(
-  geography = "cbg", 
+  geography = "tract", 
   variables = vlist, 
   state="KS",
   county="Wyandotte",
@@ -398,11 +398,11 @@ glimpse(b992701_all_counties)
 
 ```
 
-### Merge with bg_counts
+### Merge with tr_counts
 
 ```{r}
 b992701_all_counties %>%
-  inner_join(bg_counts, by=c("GEOID"="bg_id")) %>%
+  inner_join(tr_counts, by=c("GEOID"="tr_id")) %>%
   arrange(NID, GEOID, variable) -> b992701_nbd
 b992701_nbd
 ```
