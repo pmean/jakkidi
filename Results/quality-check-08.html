@@ -520,14 +520,14 @@ load_variables(2020, &quot;acs5&quot;, cache = TRUE) %&gt;%
 ## 6 B25125_031 Estimate!!Total:!!Renter occupied:!!Householder 15… TENURE… tract  
 ## # … with abbreviated variable name ¹​geography</code></pre>
 <pre class="r"><code>b25124_jackson &lt;- get_acs(
-  geography = &quot;cbg&quot;, 
+  geography = &quot;tract&quot;, 
   variables = vlist, 
   state=&quot;MO&quot;,
   county=&quot;Jackson&quot;,
   year = 2020)</code></pre>
 <pre><code>## Getting data from the 2016-2020 5-year ACS</code></pre>
 <pre class="r"><code>b25124_wyandotte &lt;- get_acs(
-  geography = &quot;cbg&quot;, 
+  geography = &quot;tract&quot;, 
   variables = vlist, 
   state=&quot;KS&quot;,
   county=&quot;Wyandotte&quot;,
@@ -537,34 +537,34 @@ load_variables(2020, &quot;acs5&quot;, cache = TRUE) %&gt;%
   bind_rows(b25124_wyandotte) -&gt; b25124_all_counties
 
 glimpse(b25124_all_counties)</code></pre>
-<pre><code>## Rows: 4,830
+<pre><code>## Rows: 1,746
 ## Columns: 5
-## $ GEOID    &lt;chr&gt; &quot;290950003001&quot;, &quot;290950003001&quot;, &quot;290950003001&quot;, &quot;290950003001…
-## $ NAME     &lt;chr&gt; &quot;Block Group 1, Census Tract 3, Jackson County, Missouri&quot;, &quot;B…
+## $ GEOID    &lt;chr&gt; &quot;29095000300&quot;, &quot;29095000300&quot;, &quot;29095000300&quot;, &quot;29095000300&quot;, &quot;…
+## $ NAME     &lt;chr&gt; &quot;Census Tract 3, Jackson County, Missouri&quot;, &quot;Census Tract 3, …
 ## $ variable &lt;chr&gt; &quot;B25124_002&quot;, &quot;B25124_003&quot;, &quot;B25124_010&quot;, &quot;B25124_017&quot;, &quot;B251…
-## $ estimate &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N…
-## $ moe      &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N…</code></pre>
+## $ estimate &lt;dbl&gt; 171, 46, 106, 19, 0, 0, 660, 198, 137, 66, 55, 0, 851, 402, 1…
+## $ moe      &lt;dbl&gt; 57, 28, 38, 28, 12, 12, 200, 82, 103, 59, 64, 12, 376, 350, 1…</code></pre>
 </div>
-<div id="merge-with-bg_counts-1" class="section level3">
-<h3>Merge with bg_counts</h3>
+<div id="merge-with-tr_counts" class="section level3">
+<h3>Merge with tr_counts</h3>
 <pre class="r"><code>b25124_all_counties %&gt;%
-  inner_join(bg_counts, by=c(&quot;GEOID&quot;=&quot;bg_id&quot;)) %&gt;%
+  inner_join(tr_counts, by=c(&quot;GEOID&quot;=&quot;tr_id&quot;)) %&gt;%
   arrange(NID, GEOID, variable) -&gt; b25124_nbd
 b25124_nbd</code></pre>
-<pre><code>## # A tibble: 9,624 × 10
-##    GEOID        NAME    varia…¹ estim…²   moe   NID peopl…³ units…⁴ people units
-##    &lt;chr&gt;        &lt;chr&gt;   &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
-##  1 290950003001 Block … B25124…      NA    NA     1       1       0    755   508
-##  2 290950003001 Block … B25124…      NA    NA     1       1       0    755   508
-##  3 290950003001 Block … B25124…      NA    NA     1       1       0    755   508
-##  4 290950003001 Block … B25124…      NA    NA     1       1       0    755   508
-##  5 290950003001 Block … B25124…      NA    NA     1       1       0    755   508
-##  6 290950003001 Block … B25125…      NA    NA     1       1       0    755   508
-##  7 290950003002 Block … B25124…      NA    NA     1     498     428    505   434
-##  8 290950003002 Block … B25124…      NA    NA     1     498     428    505   434
-##  9 290950003002 Block … B25124…      NA    NA     1     498     428    505   434
-## 10 290950003002 Block … B25124…      NA    NA     1     498     428    505   434
-## # … with 9,614 more rows, and abbreviated variable names ¹​variable, ²​estimate,
+<pre><code>## # A tibble: 6,000 × 10
+##    GEOID       NAME     varia…¹ estim…²   moe   NID people peopl…³ units units…⁴
+##    &lt;chr&gt;       &lt;chr&gt;    &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;
+##  1 29095000300 Census … B25124…     171    57     1   2087     667  1293     525
+##  2 29095000300 Census … B25124…      46    28     1   2087     667  1293     525
+##  3 29095000300 Census … B25124…     106    38     1   2087     667  1293     525
+##  4 29095000300 Census … B25124…      19    28     1   2087     667  1293     525
+##  5 29095000300 Census … B25124…       0    12     1   2087     667  1293     525
+##  6 29095000300 Census … B25125…       0    12     1   2087     667  1293     525
+##  7 29095015500 Census … B25124…     264    64     1    370       0   243       0
+##  8 29095015500 Census … B25124…      81    35     1    370       0   243       0
+##  9 29095015500 Census … B25124…      81    41     1    370       0   243       0
+## 10 29095015500 Census … B25124…      38    31     1    370       0   243       0
+## # … with 5,990 more rows, and abbreviated variable names ¹​variable, ²​estimate,
 ## #   ³​people_in, ⁴​units_in</code></pre>
 </div>
 <div id="sum-across-neighborhoods-1" class="section level3">
@@ -588,16 +588,16 @@ b25124_nbd</code></pre>
 ## # Groups:   NID [2]
 ##      NID variable   estimate
 ##    &lt;dbl&gt; &lt;chr&gt;         &lt;dbl&gt;
-##  1     1 B25124_002       NA
-##  2     1 B25124_003       NA
-##  3     1 B25124_010       NA
-##  4     1 B25124_017       NA
-##  5     1 B25124_024       NA
-##  6     1 B25125_031       NA
-##  7     2 B25124_002       NA
-##  8     2 B25124_003       NA
-##  9     2 B25124_010       NA
-## 10     2 B25124_017       NA</code></pre>
+##  1     1 B25124_002    69.4 
+##  2     1 B25124_003    18.7 
+##  3     1 B25124_010    43.0 
+##  4     1 B25124_017     7.71
+##  5     1 B25124_024     0   
+##  6     1 B25125_031     0   
+##  7     2 B25124_002   357   
+##  8     2 B25124_003   193   
+##  9     2 B25124_010   108   
+## 10     2 B25124_017    41</code></pre>
 </div>
 <div id="load-counts-for-types-of-computers-in-household." class="section level3">
 <h3>Load counts for types of computers in household.</h3>
@@ -637,7 +637,7 @@ glimpse(b28001_all_counties)</code></pre>
 ## $ estimate &lt;dbl&gt; 507, 477, 30, 21, 21, 0, 268, 246, 22, 402, 332, 70, 624, 582…
 ## $ moe      &lt;dbl&gt; 120, 118, 24, 30, 30, 12, 68, 66, 19, 118, 125, 61, 173, 174,…</code></pre>
 </div>
-<div id="merge-with-bg_counts-2" class="section level3">
+<div id="merge-with-bg_counts-1" class="section level3">
 <h3>Merge with bg_counts</h3>
 <pre class="r"><code>b28001_all_counties %&gt;%
   inner_join(bg_counts, by=c(&quot;GEOID&quot;=&quot;bg_id&quot;)) %&gt;%
@@ -693,11 +693,15 @@ b28001_nbd</code></pre>
 </div>
 <div id="load-counts-for-owners-occuppied." class="section level3">
 <h3>Load counts for owners occuppied.</h3>
-<pre class="r"><code>vlist &lt;- c(&quot;B25003_001E&quot;, &quot;B25003_002E&quot;, &quot;B25003_003E&quot;)
+<pre class="r"><code>vlist &lt;- c(&quot;B25003_001&quot;, &quot;B25003_002&quot;, &quot;B25003_003&quot;)
 load_variables(2020, &quot;acs5&quot;, cache = TRUE) %&gt;%
   filter(name %in% vlist)</code></pre>
-<pre><code>## # A tibble: 0 × 4
-## # … with 4 variables: name &lt;chr&gt;, label &lt;chr&gt;, concept &lt;chr&gt;, geography &lt;chr&gt;</code></pre>
+<pre><code>## # A tibble: 3 × 4
+##   name       label                             concept geography  
+##   &lt;chr&gt;      &lt;chr&gt;                             &lt;chr&gt;   &lt;chr&gt;      
+## 1 B25003_001 Estimate!!Total:                  TENURE  block group
+## 2 B25003_002 Estimate!!Total:!!Owner occupied  TENURE  block group
+## 3 B25003_003 Estimate!!Total:!!Renter occupied TENURE  block group</code></pre>
 <pre class="r"><code>b25003_jackson &lt;- get_acs(
   geography = &quot;cbg&quot;, 
   variables = vlist, 
@@ -724,7 +728,7 @@ glimpse(b25003_all_counties)</code></pre>
 ## $ estimate &lt;dbl&gt; 507, 151, 356, 21, 0, 21, 268, 20, 248, 402, 152, 250, 624, 2…
 ## $ moe      &lt;dbl&gt; 120, 53, 113, 30, 12, 30, 68, 17, 66, 118, 72, 114, 173, 138,…</code></pre>
 </div>
-<div id="merge-with-bg_counts-3" class="section level3">
+<div id="merge-with-bg_counts-2" class="section level3">
 <h3>Merge with bg_counts</h3>
 <pre class="r"><code>b25003_all_counties %&gt;%
   inner_join(bg_counts, by=c(&quot;GEOID&quot;=&quot;bg_id&quot;)) %&gt;%
@@ -792,14 +796,14 @@ load_variables(2020, &quot;acs5&quot;, cache = TRUE) %&gt;%
 ## 4 B09001_005 Estimate!!Total:!!In households:!!5 years       POPULATION… tract  
 ## # … with abbreviated variable name ¹​geography</code></pre>
 <pre class="r"><code>b09001_jackson &lt;- get_acs(
-  geography = &quot;cbg&quot;, 
+  geography = &quot;tract&quot;, 
   variables = vlist, 
   state=&quot;MO&quot;,
   county=&quot;Jackson&quot;,
   year = 2020)</code></pre>
 <pre><code>## Getting data from the 2016-2020 5-year ACS</code></pre>
 <pre class="r"><code>b09001_wyandotte &lt;- get_acs(
-  geography = &quot;cbg&quot;, 
+  geography = &quot;tract&quot;, 
   variables = vlist, 
   state=&quot;KS&quot;,
   county=&quot;Wyandotte&quot;,
@@ -809,34 +813,34 @@ load_variables(2020, &quot;acs5&quot;, cache = TRUE) %&gt;%
   bind_rows(b09001_wyandotte) -&gt; b09001_all_counties
 
 glimpse(b09001_all_counties)</code></pre>
-<pre><code>## Rows: 3,220
+<pre><code>## Rows: 1,164
 ## Columns: 5
-## $ GEOID    &lt;chr&gt; &quot;290950003001&quot;, &quot;290950003001&quot;, &quot;290950003001&quot;, &quot;290950003001…
-## $ NAME     &lt;chr&gt; &quot;Block Group 1, Census Tract 3, Jackson County, Missouri&quot;, &quot;B…
+## $ GEOID    &lt;chr&gt; &quot;29095000300&quot;, &quot;29095000300&quot;, &quot;29095000300&quot;, &quot;29095000300&quot;, &quot;…
+## $ NAME     &lt;chr&gt; &quot;Census Tract 3, Jackson County, Missouri&quot;, &quot;Census Tract 3, …
 ## $ variable &lt;chr&gt; &quot;B09001_001&quot;, &quot;B09001_002&quot;, &quot;B09001_003&quot;, &quot;B09001_005&quot;, &quot;B090…
-## $ estimate &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N…
-## $ moe      &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N…</code></pre>
+## $ estimate &lt;dbl&gt; 392, 392, 57, 24, 1957, 1957, 152, 39, 1173, 1173, 191, 45, 1…
+## $ moe      &lt;dbl&gt; 80, 80, 42, 30, 447, 447, 109, 56, 437, 437, 137, 54, 531, 53…</code></pre>
 </div>
-<div id="merge-with-bg_counts-4" class="section level3">
-<h3>Merge with bg_counts</h3>
+<div id="merge-with-tr_counts-1" class="section level3">
+<h3>Merge with tr_counts</h3>
 <pre class="r"><code>b09001_all_counties %&gt;%
-  inner_join(bg_counts, by=c(&quot;GEOID&quot;=&quot;bg_id&quot;)) %&gt;%
+  inner_join(tr_counts, by=c(&quot;GEOID&quot;=&quot;tr_id&quot;)) %&gt;%
   arrange(NID, GEOID, variable) -&gt; b09001_nbd
 b09001_nbd</code></pre>
-<pre><code>## # A tibble: 6,416 × 10
-##    GEOID        NAME    varia…¹ estim…²   moe   NID peopl…³ units…⁴ people units
-##    &lt;chr&gt;        &lt;chr&gt;   &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
-##  1 290950003001 Block … B09001…      NA    NA     1       1       0    755   508
-##  2 290950003001 Block … B09001…      NA    NA     1       1       0    755   508
-##  3 290950003001 Block … B09001…      NA    NA     1       1       0    755   508
-##  4 290950003001 Block … B09001…      NA    NA     1       1       0    755   508
-##  5 290950003002 Block … B09001…      NA    NA     1     498     428    505   434
-##  6 290950003002 Block … B09001…      NA    NA     1     498     428    505   434
-##  7 290950003002 Block … B09001…      NA    NA     1     498     428    505   434
-##  8 290950003002 Block … B09001…      NA    NA     1     498     428    505   434
-##  9 290950003003 Block … B09001…      NA    NA     1     168      97    827   351
-## 10 290950003003 Block … B09001…      NA    NA     1     168      97    827   351
-## # … with 6,406 more rows, and abbreviated variable names ¹​variable, ²​estimate,
+<pre><code>## # A tibble: 4,000 × 10
+##    GEOID       NAME     varia…¹ estim…²   moe   NID people peopl…³ units units…⁴
+##    &lt;chr&gt;       &lt;chr&gt;    &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;
+##  1 29095000300 Census … B09001…     392    80     1   2087     667  1293     525
+##  2 29095000300 Census … B09001…     392    80     1   2087     667  1293     525
+##  3 29095000300 Census … B09001…      57    42     1   2087     667  1293     525
+##  4 29095000300 Census … B09001…      24    30     1   2087     667  1293     525
+##  5 29095015500 Census … B09001…     395   245     1    370       0   243       0
+##  6 29095015500 Census … B09001…     395   245     1    370       0   243       0
+##  7 29095015500 Census … B09001…       5     7     1    370       0   243       0
+##  8 29095015500 Census … B09001…      44    39     1    370       0   243       0
+##  9 29095000300 Census … B09001…     392    80     2   2087       0  1293       0
+## 10 29095000300 Census … B09001…     392    80     2   2087       0  1293       0
+## # … with 3,990 more rows, and abbreviated variable names ¹​variable, ²​estimate,
 ## #   ³​people_in, ⁴​units_in</code></pre>
 </div>
 <div id="sum-across-neighborhoods-4" class="section level3">
@@ -854,22 +858,22 @@ b09001_nbd</code></pre>
 ## Groups: NID [244]
 ## $ NID      &lt;dbl&gt; 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 5, 5, 5, 5, 6, 6, 6, 6, 7…
 ## $ variable &lt;chr&gt; &quot;B09001_001&quot;, &quot;B09001_002&quot;, &quot;B09001_003&quot;, &quot;B09001_005&quot;, &quot;B090…
-## $ estimate &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N…</code></pre>
+## $ estimate &lt;dbl&gt; 159.1647332, 159.1647332, 23.1438515, 9.7447796, 102.0000000,…</code></pre>
 <pre class="r"><code>b09001_weighted[1:10, ]</code></pre>
 <pre><code>## # A tibble: 10 × 3
 ## # Groups:   NID [3]
 ##      NID variable   estimate
 ##    &lt;dbl&gt; &lt;chr&gt;         &lt;dbl&gt;
-##  1     1 B09001_001       NA
-##  2     1 B09001_002       NA
-##  3     1 B09001_003       NA
-##  4     1 B09001_005       NA
-##  5     2 B09001_001       NA
-##  6     2 B09001_002       NA
-##  7     2 B09001_003       NA
-##  8     2 B09001_005       NA
-##  9     3 B09001_001       NA
-## 10     3 B09001_002       NA</code></pre>
+##  1     1 B09001_001   159.  
+##  2     1 B09001_002   159.  
+##  3     1 B09001_003    23.1 
+##  4     1 B09001_005     9.74
+##  5     2 B09001_001   102   
+##  6     2 B09001_002   102   
+##  7     2 B09001_003    41   
+##  8     2 B09001_005     0   
+##  9     3 B09001_001    11.0 
+## 10     3 B09001_002    11.0</code></pre>
 </div>
 <div id="load-counts-for-poverty-status-in-the-past-12-months-by-sex-by-age." class="section level3">
 <h3>Load counts for poverty status in the past 12 months by sex by
@@ -887,14 +891,14 @@ load_variables(2020, &quot;acs5&quot;, cache = TRUE) %&gt;%
 ## 5 B17001_018 Estimate!!Total:!!Income in the past 12 months bel… POVERT… tract  
 ## # … with abbreviated variable name ¹​geography</code></pre>
 <pre class="r"><code>b17001_jackson &lt;- get_acs(
-  geography = &quot;cbg&quot;, 
+  geography = &quot;tract&quot;, 
   variables = vlist, 
   state=&quot;MO&quot;,
   county=&quot;Jackson&quot;,
   year = 2020)</code></pre>
 <pre><code>## Getting data from the 2016-2020 5-year ACS</code></pre>
 <pre class="r"><code>b17001_wyandotte &lt;- get_acs(
-  geography = &quot;cbg&quot;, 
+  geography = &quot;tract&quot;, 
   variables = vlist, 
   state=&quot;KS&quot;,
   county=&quot;Wyandotte&quot;,
@@ -904,34 +908,34 @@ load_variables(2020, &quot;acs5&quot;, cache = TRUE) %&gt;%
   bind_rows(b17001_wyandotte) -&gt; b17001_all_counties
 
 glimpse(b17001_all_counties)</code></pre>
-<pre><code>## Rows: 4,025
+<pre><code>## Rows: 1,455
 ## Columns: 5
-## $ GEOID    &lt;chr&gt; &quot;290950003001&quot;, &quot;290950003001&quot;, &quot;290950003001&quot;, &quot;290950003001…
-## $ NAME     &lt;chr&gt; &quot;Block Group 1, Census Tract 3, Jackson County, Missouri&quot;, &quot;B…
+## $ GEOID    &lt;chr&gt; &quot;29095000300&quot;, &quot;29095000300&quot;, &quot;29095000300&quot;, &quot;29095000300&quot;, &quot;…
+## $ NAME     &lt;chr&gt; &quot;Census Tract 3, Jackson County, Missouri&quot;, &quot;Census Tract 3, …
 ## $ variable &lt;chr&gt; &quot;B17001_001&quot;, &quot;B17001_002&quot;, &quot;B17001_003&quot;, &quot;B17001_017&quot;, &quot;B170…
-## $ estimate &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N…
-## $ moe      &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N…</code></pre>
+## $ estimate &lt;dbl&gt; 1628, 522, 291, 231, 18, 4857, 1160, 448, 712, 45, 3417, 608,…
+## $ moe      &lt;dbl&gt; 251, 197, 155, 73, 29, 806, 579, 267, 370, 62, 681, 393, 192,…</code></pre>
 </div>
-<div id="merge-with-bg_counts-5" class="section level3">
-<h3>Merge with bg_counts</h3>
+<div id="merge-with-tr_counts-2" class="section level3">
+<h3>Merge with tr_counts</h3>
 <pre class="r"><code>b17001_all_counties %&gt;%
-  inner_join(bg_counts, by=c(&quot;GEOID&quot;=&quot;bg_id&quot;)) %&gt;%
+  inner_join(tr_counts, by=c(&quot;GEOID&quot;=&quot;tr_id&quot;)) %&gt;%
   arrange(NID, GEOID, variable) -&gt; b17001_nbd
 b17001_nbd</code></pre>
-<pre><code>## # A tibble: 8,020 × 10
-##    GEOID        NAME    varia…¹ estim…²   moe   NID peopl…³ units…⁴ people units
-##    &lt;chr&gt;        &lt;chr&gt;   &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
-##  1 290950003001 Block … B17001…      NA    NA     1       1       0    755   508
-##  2 290950003001 Block … B17001…      NA    NA     1       1       0    755   508
-##  3 290950003001 Block … B17001…      NA    NA     1       1       0    755   508
-##  4 290950003001 Block … B17001…      NA    NA     1       1       0    755   508
-##  5 290950003001 Block … B17001…      NA    NA     1       1       0    755   508
-##  6 290950003002 Block … B17001…      NA    NA     1     498     428    505   434
-##  7 290950003002 Block … B17001…      NA    NA     1     498     428    505   434
-##  8 290950003002 Block … B17001…      NA    NA     1     498     428    505   434
-##  9 290950003002 Block … B17001…      NA    NA     1     498     428    505   434
-## 10 290950003002 Block … B17001…      NA    NA     1     498     428    505   434
-## # … with 8,010 more rows, and abbreviated variable names ¹​variable, ²​estimate,
+<pre><code>## # A tibble: 5,000 × 10
+##    GEOID       NAME     varia…¹ estim…²   moe   NID people peopl…³ units units…⁴
+##    &lt;chr&gt;       &lt;chr&gt;    &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;
+##  1 29095000300 Census … B17001…    1628   251     1   2087     667  1293     525
+##  2 29095000300 Census … B17001…     522   197     1   2087     667  1293     525
+##  3 29095000300 Census … B17001…     291   155     1   2087     667  1293     525
+##  4 29095000300 Census … B17001…     231    73     1   2087     667  1293     525
+##  5 29095000300 Census … B17001…      18    29     1   2087     667  1293     525
+##  6 29095015500 Census … B17001…    1287   420     1    370       0   243       0
+##  7 29095015500 Census … B17001…     435   339     1    370       0   243       0
+##  8 29095015500 Census … B17001…     144   108     1    370       0   243       0
+##  9 29095015500 Census … B17001…     291   238     1    370       0   243       0
+## 10 29095015500 Census … B17001…       0    12     1    370       0   243       0
+## # … with 4,990 more rows, and abbreviated variable names ¹​variable, ²​estimate,
 ## #   ³​people_in, ⁴​units_in</code></pre>
 </div>
 <div id="sum-across-neighborhoods-5" class="section level3">
@@ -949,22 +953,22 @@ b17001_nbd</code></pre>
 ## Groups: NID [244]
 ## $ NID      &lt;dbl&gt; 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 5, 5, 5, 5, 5, 6…
 ## $ variable &lt;chr&gt; &quot;B17001_001&quot;, &quot;B17001_002&quot;, &quot;B17001_003&quot;, &quot;B17001_017&quot;, &quot;B170…
-## $ estimate &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N…</code></pre>
+## $ estimate &lt;dbl&gt; 661.020882, 211.948956, 118.155452, 93.793503, 7.308585, 2586…</code></pre>
 <pre class="r"><code>b17001_weighted[1:10, ]</code></pre>
 <pre><code>## # A tibble: 10 × 3
 ## # Groups:   NID [2]
 ##      NID variable   estimate
 ##    &lt;dbl&gt; &lt;chr&gt;         &lt;dbl&gt;
-##  1     1 B17001_001       NA
-##  2     1 B17001_002       NA
-##  3     1 B17001_003       NA
-##  4     1 B17001_017       NA
-##  5     1 B17001_018       NA
-##  6     2 B17001_001       NA
-##  7     2 B17001_002       NA
-##  8     2 B17001_003       NA
-##  9     2 B17001_017       NA
-## 10     2 B17001_018       NA</code></pre>
+##  1     1 B17001_001   661.  
+##  2     1 B17001_002   212.  
+##  3     1 B17001_003   118.  
+##  4     1 B17001_017    93.8 
+##  5     1 B17001_018     7.31
+##  6     2 B17001_001  2586   
+##  7     2 B17001_002   137   
+##  8     2 B17001_003    82   
+##  9     2 B17001_017    55   
+## 10     2 B17001_018     0</code></pre>
 </div>
 <div id="load-counts-for-health-insurance-coverage-status-by-sex-by-age" class="section level3">
 <h3>Load counts for Health insurance coverage status by sex by age</h3>
@@ -979,14 +983,14 @@ load_variables(2020, &quot;acs5&quot;, cache = TRUE) %&gt;%
 ## 3 B27001_030 Estimate!!Total:!!Female: HEALTH INSURANCE COVERAGE STATUS… tract  
 ## # … with abbreviated variable name ¹​geography</code></pre>
 <pre class="r"><code>b27001_jackson &lt;- get_acs(
-  geography = &quot;cbg&quot;, 
+  geography = &quot;tract&quot;, 
   variables = vlist, 
   state=&quot;MO&quot;,
   county=&quot;Jackson&quot;,
   year = 2020)</code></pre>
 <pre><code>## Getting data from the 2016-2020 5-year ACS</code></pre>
 <pre class="r"><code>b27001_wyandotte &lt;- get_acs(
-  geography = &quot;cbg&quot;, 
+  geography = &quot;tract&quot;, 
   variables = vlist, 
   state=&quot;KS&quot;,
   county=&quot;Wyandotte&quot;,
@@ -996,34 +1000,34 @@ load_variables(2020, &quot;acs5&quot;, cache = TRUE) %&gt;%
   bind_rows(b27001_wyandotte) -&gt; b27001_all_counties
 
 glimpse(b27001_all_counties)</code></pre>
-<pre><code>## Rows: 2,415
+<pre><code>## Rows: 873
 ## Columns: 5
-## $ GEOID    &lt;chr&gt; &quot;290950003001&quot;, &quot;290950003001&quot;, &quot;290950003001&quot;, &quot;290950003002…
-## $ NAME     &lt;chr&gt; &quot;Block Group 1, Census Tract 3, Jackson County, Missouri&quot;, &quot;B…
+## $ GEOID    &lt;chr&gt; &quot;29095000300&quot;, &quot;29095000300&quot;, &quot;29095000300&quot;, &quot;29095000600&quot;, &quot;…
+## $ NAME     &lt;chr&gt; &quot;Census Tract 3, Jackson County, Missouri&quot;, &quot;Census Tract 3, …
 ## $ variable &lt;chr&gt; &quot;B27001_001&quot;, &quot;B27001_002&quot;, &quot;B27001_030&quot;, &quot;B27001_001&quot;, &quot;B270…
-## $ estimate &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N…
-## $ moe      &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N…</code></pre>
+## $ estimate &lt;dbl&gt; 1649, 763, 886, 4900, 2515, 2385, 3417, 1706, 1711, 4014, 187…
+## $ moe      &lt;dbl&gt; 255, 193, 142, 811, 509, 440, 681, 456, 381, 836, 468, 460, 6…</code></pre>
 </div>
-<div id="merge-with-bg_counts-6" class="section level3">
-<h3>Merge with bg_counts</h3>
+<div id="merge-with-tr_counts-3" class="section level3">
+<h3>Merge with tr_counts</h3>
 <pre class="r"><code>b27001_all_counties %&gt;%
-  inner_join(bg_counts, by=c(&quot;GEOID&quot;=&quot;bg_id&quot;)) %&gt;%
+  inner_join(tr_counts, by=c(&quot;GEOID&quot;=&quot;tr_id&quot;)) %&gt;%
   arrange(NID, GEOID, variable) -&gt; b27001_nbd
 b27001_nbd</code></pre>
-<pre><code>## # A tibble: 4,812 × 10
-##    GEOID        NAME    varia…¹ estim…²   moe   NID peopl…³ units…⁴ people units
-##    &lt;chr&gt;        &lt;chr&gt;   &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
-##  1 290950003001 Block … B27001…      NA    NA     1       1       0    755   508
-##  2 290950003001 Block … B27001…      NA    NA     1       1       0    755   508
-##  3 290950003001 Block … B27001…      NA    NA     1       1       0    755   508
-##  4 290950003002 Block … B27001…      NA    NA     1     498     428    505   434
-##  5 290950003002 Block … B27001…      NA    NA     1     498     428    505   434
-##  6 290950003002 Block … B27001…      NA    NA     1     498     428    505   434
-##  7 290950003003 Block … B27001…      NA    NA     1     168      97    827   351
-##  8 290950003003 Block … B27001…      NA    NA     1     168      97    827   351
-##  9 290950003003 Block … B27001…      NA    NA     1     168      97    827   351
-## 10 290950155001 Block … B27001…      NA    NA     1       0       0    370   243
-## # … with 4,802 more rows, and abbreviated variable names ¹​variable, ²​estimate,
+<pre><code>## # A tibble: 3,000 × 10
+##    GEOID       NAME     varia…¹ estim…²   moe   NID people peopl…³ units units…⁴
+##    &lt;chr&gt;       &lt;chr&gt;    &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;
+##  1 29095000300 Census … B27001…    1649   255     1   2087     667  1293     525
+##  2 29095000300 Census … B27001…     763   193     1   2087     667  1293     525
+##  3 29095000300 Census … B27001…     886   142     1   2087     667  1293     525
+##  4 29095015500 Census … B27001…    1287   420     1    370       0   243       0
+##  5 29095015500 Census … B27001…     608   167     1    370       0   243       0
+##  6 29095015500 Census … B27001…     679   273     1    370       0   243       0
+##  7 29095000300 Census … B27001…    1649   255     2   2087       0  1293       0
+##  8 29095000300 Census … B27001…     763   193     2   2087       0  1293       0
+##  9 29095000300 Census … B27001…     886   142     2   2087       0  1293       0
+## 10 29095015200 Census … B27001…    2563   475     2   2302    2302  1917    1917
+## # … with 2,990 more rows, and abbreviated variable names ¹​variable, ²​estimate,
 ## #   ³​people_in, ⁴​units_in</code></pre>
 </div>
 <div id="sum-across-neighborhoods-6" class="section level3">
@@ -1041,22 +1045,22 @@ b27001_nbd</code></pre>
 ## Groups: NID [244]
 ## $ NID      &lt;dbl&gt; 1, 1, 1, 2, 2, 2, 3, 3, 3, 5, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8, 8…
 ## $ variable &lt;chr&gt; &quot;B27001_001&quot;, &quot;B27001_002&quot;, &quot;B27001_030&quot;, &quot;B27001_001&quot;, &quot;B270…
-## $ estimate &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N…</code></pre>
+## $ estimate &lt;dbl&gt; 669.54756, 309.80278, 359.74478, 2563.00000, 1491.00000, 1072…</code></pre>
 <pre class="r"><code>b27001_weighted[1:10, ]</code></pre>
 <pre><code>## # A tibble: 10 × 3
 ## # Groups:   NID [4]
 ##      NID variable   estimate
 ##    &lt;dbl&gt; &lt;chr&gt;         &lt;dbl&gt;
-##  1     1 B27001_001       NA
-##  2     1 B27001_002       NA
-##  3     1 B27001_030       NA
-##  4     2 B27001_001       NA
-##  5     2 B27001_002       NA
-##  6     2 B27001_030       NA
-##  7     3 B27001_001       NA
-##  8     3 B27001_002       NA
-##  9     3 B27001_030       NA
-## 10     5 B27001_001       NA</code></pre>
+##  1     1 B27001_001     670.
+##  2     1 B27001_002     310.
+##  3     1 B27001_030     360.
+##  4     2 B27001_001    2563 
+##  5     2 B27001_002    1491 
+##  6     2 B27001_030    1072 
+##  7     3 B27001_001    1803.
+##  8     3 B27001_002    1033.
+##  9     3 B27001_030     770.
+## 10     5 B27001_001    3065</code></pre>
 </div>
 <div id="load-counts-for-allocation-of-health-insurance-coverage" class="section level3">
 <h3>Load counts for allocation of Health insurance coverage</h3>
@@ -1071,14 +1075,14 @@ load_variables(2020, &quot;acs5&quot;, cache = TRUE) %&gt;%
 ## 3 B992701_003 Estimate!!Total:!!No health insurance items alloc… ALLOCA… tract  
 ## # … with abbreviated variable name ¹​geography</code></pre>
 <pre class="r"><code>b992701_jackson &lt;- get_acs(
-  geography = &quot;cbg&quot;, 
+  geography = &quot;tract&quot;, 
   variables = vlist, 
   state=&quot;MO&quot;,
   county=&quot;Jackson&quot;,
   year = 2020)</code></pre>
 <pre><code>## Getting data from the 2016-2020 5-year ACS</code></pre>
 <pre class="r"><code>b992701_wyandotte &lt;- get_acs(
-  geography = &quot;cbg&quot;, 
+  geography = &quot;tract&quot;, 
   variables = vlist, 
   state=&quot;KS&quot;,
   county=&quot;Wyandotte&quot;,
@@ -1088,33 +1092,33 @@ load_variables(2020, &quot;acs5&quot;, cache = TRUE) %&gt;%
   bind_rows(b992701_wyandotte) -&gt; b992701_all_counties
 
 glimpse(b992701_all_counties)</code></pre>
-<pre><code>## Rows: 2,415
+<pre><code>## Rows: 873
 ## Columns: 4
-## $ GEOID    &lt;chr&gt; &quot;290950003001&quot;, &quot;290950003001&quot;, &quot;290950003001&quot;, &quot;290950003002…
-## $ NAME     &lt;chr&gt; &quot;Block Group 1, Census Tract 3, Jackson County, Missouri&quot;, &quot;B…
+## $ GEOID    &lt;chr&gt; &quot;29095000300&quot;, &quot;29095000300&quot;, &quot;29095000300&quot;, &quot;29095000600&quot;, &quot;…
+## $ NAME     &lt;chr&gt; &quot;Census Tract 3, Jackson County, Missouri&quot;, &quot;Census Tract 3, …
 ## $ variable &lt;chr&gt; &quot;B992701_001&quot;, &quot;B992701_002&quot;, &quot;B992701_003&quot;, &quot;B992701_001&quot;, &quot;…
-## $ estimate &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N…</code></pre>
+## $ estimate &lt;dbl&gt; 1649, 195, 1454, 4900, 408, 4492, 3417, 451, 2966, 4014, 397,…</code></pre>
 </div>
-<div id="merge-with-bg_counts-7" class="section level3">
-<h3>Merge with bg_counts</h3>
+<div id="merge-with-tr_counts-4" class="section level3">
+<h3>Merge with tr_counts</h3>
 <pre class="r"><code>b992701_all_counties %&gt;%
-  inner_join(bg_counts, by=c(&quot;GEOID&quot;=&quot;bg_id&quot;)) %&gt;%
+  inner_join(tr_counts, by=c(&quot;GEOID&quot;=&quot;tr_id&quot;)) %&gt;%
   arrange(NID, GEOID, variable) -&gt; b992701_nbd
 b992701_nbd</code></pre>
-<pre><code>## # A tibble: 4,812 × 9
-##    GEOID        NAME          varia…¹ estim…²   NID peopl…³ units…⁴ people units
-##    &lt;chr&gt;        &lt;chr&gt;         &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
-##  1 290950003001 Block Group … B99270…      NA     1       1       0    755   508
-##  2 290950003001 Block Group … B99270…      NA     1       1       0    755   508
-##  3 290950003001 Block Group … B99270…      NA     1       1       0    755   508
-##  4 290950003002 Block Group … B99270…      NA     1     498     428    505   434
-##  5 290950003002 Block Group … B99270…      NA     1     498     428    505   434
-##  6 290950003002 Block Group … B99270…      NA     1     498     428    505   434
-##  7 290950003003 Block Group … B99270…      NA     1     168      97    827   351
-##  8 290950003003 Block Group … B99270…      NA     1     168      97    827   351
-##  9 290950003003 Block Group … B99270…      NA     1     168      97    827   351
-## 10 290950155001 Block Group … B99270…      NA     1       0       0    370   243
-## # … with 4,802 more rows, and abbreviated variable names ¹​variable, ²​estimate,
+<pre><code>## # A tibble: 3,000 × 9
+##    GEOID       NAME           varia…¹ estim…²   NID people peopl…³ units units…⁴
+##    &lt;chr&gt;       &lt;chr&gt;          &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;
+##  1 29095000300 Census Tract … B99270…    1649     1   2087     667  1293     525
+##  2 29095000300 Census Tract … B99270…     195     1   2087     667  1293     525
+##  3 29095000300 Census Tract … B99270…    1454     1   2087     667  1293     525
+##  4 29095015500 Census Tract … B99270…    1287     1    370       0   243       0
+##  5 29095015500 Census Tract … B99270…     370     1    370       0   243       0
+##  6 29095015500 Census Tract … B99270…     917     1    370       0   243       0
+##  7 29095000300 Census Tract … B99270…    1649     2   2087       0  1293       0
+##  8 29095000300 Census Tract … B99270…     195     2   2087       0  1293       0
+##  9 29095000300 Census Tract … B99270…    1454     2   2087       0  1293       0
+## 10 29095015200 Census Tract … B99270…    2563     2   2302    2302  1917    1917
+## # … with 2,990 more rows, and abbreviated variable names ¹​variable, ²​estimate,
 ## #   ³​people_in, ⁴​units_in</code></pre>
 </div>
 <div id="sum-across-neighborhoods-7" class="section level3">
@@ -1132,22 +1136,22 @@ b992701_nbd</code></pre>
 ## Groups: NID [244]
 ## $ NID      &lt;dbl&gt; 1, 1, 1, 2, 2, 2, 3, 3, 3, 5, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8, 8…
 ## $ variable &lt;chr&gt; &quot;B992701_001&quot;, &quot;B992701_002&quot;, &quot;B992701_003&quot;, &quot;B992701_001&quot;, &quot;…
-## $ estimate &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N…</code></pre>
+## $ estimate &lt;dbl&gt; 669.547564, 79.176334, 590.371230, 2563.000000, 458.000000, 2…</code></pre>
 <pre class="r"><code>b992701_weighted[1:10, ]</code></pre>
 <pre><code>## # A tibble: 10 × 3
 ## # Groups:   NID [4]
 ##      NID variable    estimate
 ##    &lt;dbl&gt; &lt;chr&gt;          &lt;dbl&gt;
-##  1     1 B992701_001       NA
-##  2     1 B992701_002       NA
-##  3     1 B992701_003       NA
-##  4     2 B992701_001       NA
-##  5     2 B992701_002       NA
-##  6     2 B992701_003       NA
-##  7     3 B992701_001       NA
-##  8     3 B992701_002       NA
-##  9     3 B992701_003       NA
-## 10     5 B992701_001       NA</code></pre>
+##  1     1 B992701_001    670. 
+##  2     1 B992701_002     79.2
+##  3     1 B992701_003    590. 
+##  4     2 B992701_001   2563  
+##  5     2 B992701_002    458  
+##  6     2 B992701_003   2105  
+##  7     3 B992701_001   1803. 
+##  8     3 B992701_002    147. 
+##  9     3 B992701_003   1656. 
+## 10     5 B992701_001   3065</code></pre>
 </div>
 
 
