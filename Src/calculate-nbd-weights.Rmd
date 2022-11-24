@@ -183,6 +183,21 @@ count_in                               %>%
   filter(NID > 0)                      -> bg_counts
 glimpse(bg_counts)
 ```
+###sum across blockgroups to get tracts counts
+```{r}
+bg_counts     %>%
+   mutate(tr_id=str_sub(bg_id,1,11))  %>%
+  group_by(NID,tr_id)                 %>%
+  summarize(
+    people=sum(people),
+    people_in=sum(people_in),
+    units=sum(units),
+    units_in=sum(units_in))           -> tr_counts
+  
+glimpse(tr_counts)
+```
+
+
 ### Save the information in an RData file.
 
 ```{r save}
@@ -191,5 +206,6 @@ save(
   bg_list,
   bl_counts,
   bl_list,
+  tr_counts,
   file="../Data/nbd-weights.RData")
 ```
