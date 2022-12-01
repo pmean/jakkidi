@@ -51,6 +51,34 @@ b25002_jackson <- get_acs(
   county="Jackson",
   year = 2020)
 
+b25002_cass <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="MO",
+  county="cass",
+  year = 2020)
+
+b25002_clay <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="MO",
+  county="clay",
+  year = 2020)
+
+b25002_Johnson <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="KS",
+  county="Johnson",
+  year = 2020)
+
+b25002_Leavenworth <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="KS",
+  county="Leavenworth",
+  year = 2020)
+
 b25002_wyandotte <- get_acs(
   geography = "cbg", 
   variables = vlist, 
@@ -58,8 +86,12 @@ b25002_wyandotte <- get_acs(
   county="Wyandotte",
   year = 2020)
 
-b25002_jackson %>%
-  bind_rows(b25002_wyandotte) -> b25002_all_counties
+  b25002_cass                  %>%
+  bind_rows(b25002_clay)       %>%
+  bind_rows(b25002_jackson)    %>%     
+  bind_rows(b25002_Johnson)    %>%
+  bind_rows(b25002_Leavenworth)%>%  
+  bind_rows(b25002_wyandotte)  -> b25002_all_counties
 
 glimpse(b25002_all_counties)
 
@@ -100,6 +132,34 @@ b25124_jackson <- get_acs(
   county="Jackson",
   year = 2020)
 
+b25124_cass <- get_acs(
+  geography = "tract", 
+  variables = vlist, 
+  state="MO",
+  county="cass",
+  year = 2020)
+
+b25124_clay <- get_acs(
+  geography = "tract", 
+  variables = vlist, 
+  state="MO",
+  county="clay",
+  year = 2020)
+
+b25124_Johnson <- get_acs(
+  geography = "tract", 
+  variables = vlist, 
+  state="KS",
+  county="Johnson",
+  year = 2020)
+
+b25124_Leavenworth <- get_acs(
+  geography = "tract", 
+  variables = vlist, 
+  state="KS",
+  county="Leavenworth",
+  year = 2020)
+
 b25124_wyandotte <- get_acs(
   geography = "tract", 
   variables = vlist, 
@@ -107,8 +167,12 @@ b25124_wyandotte <- get_acs(
   county="Wyandotte",
   year = 2020)
 
-b25124_jackson %>%
-  bind_rows(b25124_wyandotte) -> b25124_all_counties
+b25124_cass                    %>%
+  bind_rows(b25124_clay)       %>%
+  bind_rows(b25124_jackson)    %>%     
+  bind_rows(b25124_Johnson)    %>%
+  bind_rows(b25124_Leavenworth)%>%  
+  bind_rows(b25124_wyandotte)  -> b25124_all_counties
 
 glimpse(b25124_all_counties)
 
@@ -147,6 +211,34 @@ b28001_jackson <- get_acs(
   county="Jackson",
   year = 2020)
 
+b28001_cass <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="MO",
+  county="cass",
+  year = 2020)
+
+b28001_clay <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="MO",
+  county="clay",
+  year = 2020)
+
+b28001_Johnson <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="KS",
+  county="Johnson",
+  year = 2020)
+
+b28001_Leavenworth <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="KS",
+  county="Leavenworth",
+  year = 2020)
+
 b28001_wyandotte <- get_acs(
   geography = "cbg", 
   variables = vlist, 
@@ -154,8 +246,13 @@ b28001_wyandotte <- get_acs(
   county="Wyandotte",
   year = 2020)
 
-b28001_jackson %>%
-  bind_rows(b28001_wyandotte) -> b28001_all_counties
+  b28001_cass                  %>%
+  bind_rows(b28001_clay)       %>%
+  bind_rows(b28001_jackson)    %>%     
+  bind_rows(b28001_Johnson)    %>%
+  bind_rows(b28001_Leavenworth)%>%  
+  bind_rows(b28001_wyandotte)  -> b28001_all_counties
+
 
 glimpse(b28001_all_counties)
 
@@ -194,6 +291,34 @@ b25003_jackson <- get_acs(
   county="Jackson",
   year = 2020)
 
+b25003_cass <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="MO",
+  county="cass",
+  year = 2020)
+
+b25003_clay <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="MO",
+  county="clay",
+  year = 2020)
+
+b25003_Johnson <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="KS",
+  county="Johnson",
+  year = 2020)
+
+b25003_Leavenworth <- get_acs(
+  geography = "cbg", 
+  variables = vlist, 
+  state="KS",
+  county="Leavenworth",
+  year = 2020)
+
 b25003_wyandotte <- get_acs(
   geography = "cbg", 
   variables = vlist, 
@@ -201,10 +326,12 @@ b25003_wyandotte <- get_acs(
   county="Wyandotte",
   year = 2020)
 
-b25003_jackson %>%
-  bind_rows(b28001_wyandotte) -> b25003_all_counties
-
-glimpse(b25003_all_counties)
+  b25003_cass                  %>%
+  bind_rows(b25003_clay)       %>%
+  bind_rows(b25003_jackson)    %>%     
+  bind_rows(b25003_Johnson)    %>%
+  bind_rows(b25003_Leavenworth)%>%  
+  bind_rows(b25003_wyandotte)  -> b25003_all_counties
 
 ```
 
@@ -241,6 +368,34 @@ b09001_jackson <- get_acs(
   county="Jackson",
   year = 2020)
 
+b09001_cass <- get_acs(
+  geography = "tract", 
+  variables = vlist, 
+  state="MO",
+  county="cass",
+  year = 2020)
+
+b09001_clay <- get_acs(
+  geography = "tract", 
+  variables = vlist, 
+  state="MO",
+  county="clay",
+  year = 2020)
+
+b09001_Johnson <- get_acs(
+  geography = "tract", 
+  variables = vlist, 
+  state="KS",
+  county="Johnson",
+  year = 2020)
+
+b09001_Leavenworth <- get_acs(
+  geography = "tract", 
+  variables = vlist, 
+  state="KS",
+  county="Leavenworth",
+  year = 2020)
+
 b09001_wyandotte <- get_acs(
   geography = "tract", 
   variables = vlist, 
@@ -248,8 +403,12 @@ b09001_wyandotte <- get_acs(
   county="Wyandotte",
   year = 2020)
 
-b09001_jackson %>%
-  bind_rows(b09001_wyandotte) -> b09001_all_counties
+  b09001_cass                  %>%
+  bind_rows(b09001_clay)       %>%
+  bind_rows(b09001_jackson)    %>%     
+  bind_rows(b09001_Johnson)    %>%
+  bind_rows(b09001_Leavenworth)%>%  
+  bind_rows(b09001_wyandotte)  -> b09001_all_counties
 
 glimpse(b09001_all_counties)
 
@@ -288,6 +447,34 @@ b17001_jackson <- get_acs(
   county="Jackson",
   year = 2020)
 
+b17001_cass <- get_acs(
+  geography = "tract", 
+  variables = vlist, 
+  state="MO",
+  county="cass",
+  year = 2020)
+
+b17001_clay <- get_acs(
+  geography = "tract", 
+  variables = vlist, 
+  state="MO",
+  county="clay",
+  year = 2020)
+
+b17001_Johnson <- get_acs(
+  geography = "tract", 
+  variables = vlist, 
+  state="KS",
+  county="Johnson",
+  year = 2020)
+
+b17001_Leavenworth <- get_acs(
+  geography = "tract", 
+  variables = vlist, 
+  state="KS",
+  county="Leavenworth",
+  year = 2020)
+
 b17001_wyandotte <- get_acs(
   geography = "tract", 
   variables = vlist, 
@@ -295,8 +482,12 @@ b17001_wyandotte <- get_acs(
   county="Wyandotte",
   year = 2020)
 
-b17001_jackson %>%
-  bind_rows(b17001_wyandotte) -> b17001_all_counties
+  b17001_cass                  %>%
+  bind_rows(b17001_clay)       %>%
+  bind_rows(b17001_jackson)    %>%     
+  bind_rows(b17001_Johnson)    %>%
+  bind_rows(b17001_Leavenworth)%>%  
+  bind_rows(b17001_wyandotte)  -> b17001_all_counties
 
 glimpse(b17001_all_counties)
 
@@ -336,6 +527,34 @@ b27001_jackson <- get_acs(
   county="Jackson",
   year = 2020)
 
+b27001_cass <- get_acs(
+  geography = "tract", 
+  variables = vlist, 
+  state="MO",
+  county="cass",
+  year = 2020)
+
+b27001_clay <- get_acs(
+  geography = "tract", 
+  variables = vlist, 
+  state="MO",
+  county="clay",
+  year = 2020)
+
+b27001_Johnson <- get_acs(
+  geography = "tract", 
+  variables = vlist, 
+  state="KS",
+  county="Johnson",
+  year = 2020)
+
+b27001_Leavenworth <- get_acs(
+  geography = "tract", 
+  variables = vlist, 
+  state="KS",
+  county="Leavenworth",
+  year = 2020)
+
 b27001_wyandotte <- get_acs(
   geography = "tract", 
   variables = vlist, 
@@ -343,8 +562,12 @@ b27001_wyandotte <- get_acs(
   county="Wyandotte",
   year = 2020)
 
-b27001_jackson %>%
-  bind_rows(b27001_wyandotte) -> b27001_all_counties
+  b27001_cass                  %>%
+  bind_rows(b27001_clay)       %>%
+  bind_rows(b27001_jackson)    %>%     
+  bind_rows(b27001_Johnson)    %>%
+  bind_rows(b27001_Leavenworth)%>%  
+  bind_rows(b27001_wyandotte)  -> b27001_all_counties
 
 glimpse(b27001_all_counties)
 
@@ -384,6 +607,34 @@ b992701_jackson <- get_acs(
   county="Jackson",
   year = 2020)
 
+b992701_cass <- get_acs(
+  geography = "tract", 
+  variables = vlist, 
+  state="MO",
+  county="cass",
+  year = 2020)
+
+b992701_clay <- get_acs(
+  geography = "tract", 
+  variables = vlist, 
+  state="MO",
+  county="clay",
+  year = 2020)
+
+b992701_Johnson <- get_acs(
+  geography = "tract", 
+  variables = vlist, 
+  state="KS",
+  county="Johnson",
+  year = 2020)
+
+b992701_Leavenworth <- get_acs(
+  geography = "tract", 
+  variables = vlist, 
+  state="KS",
+  county="Leavenworth",
+  year = 2020)
+
 b992701_wyandotte <- get_acs(
   geography = "tract", 
   variables = vlist, 
@@ -391,8 +642,12 @@ b992701_wyandotte <- get_acs(
   county="Wyandotte",
   year = 2020)
 
-b992701_jackson %>%
-  bind_rows(b992701_wyandotte) -> b992701_all_counties
+  b992701_cass                  %>%
+  bind_rows(b992701_clay)       %>%
+  bind_rows(b992701_jackson)    %>%     
+  bind_rows(b992701_Johnson)    %>%
+  bind_rows(b992701_Leavenworth)%>%  
+  bind_rows(b992701_wyandotte)  -> b992701_all_counties
 
 glimpse(b992701_all_counties)
 
