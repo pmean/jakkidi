@@ -37,6 +37,33 @@ load(glue("{path_name}nbd-weights.RData"))
 glimpse(bg_counts)
 ```
 
+### Build a functions to pull ACS and reweight
+
+```{r}
+# Prototype functions
+
+get_documentation <- function() {
+# This function takes a list of ACS 
+# variable names (very cryptic!) and
+# gets an interpretable explanation
+# of what these variables mean.
+}
+
+pull_acs <- function() {
+# This function takes a list of ACS
+# variable names, pulls the data
+# from ACS and reweights the data
+# to allocate it to neighborhoods
+# or community districts.
+}
+
+display_acs <- function() {
+# This function displays ACS data
+# for one or more neighborhoods or
+# community districts on a map.
+}
+```
+
 ### Load counts for houses that are occupied/vacant
 
 ```{r}
