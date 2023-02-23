@@ -3,8 +3,7 @@ data_dictionary: neighborhoods.zip
 
 authors: Satya Golla and Steve Simon
 
-copyright:  
-  Uncertain.
+copyright: Uncertain.
 
 creation_date: Unknown
 
@@ -38,23 +37,19 @@ vars:
     label: Which community district this belongs to
     
   id:
-    label: Unknown
-    unique id field, inde variable gi
+    label: unique id field
   
   label_long:
     label: Unknown
-  long name of nbd
+
   shid:
     label: Unknown
     id for Shapefile
-    
-  
+
   Shape_Leng:
     label: Perimeter of neighborhood
     unit: Unknown
-  
- 
-    
+
   Shape_Area:
     label: Area of neighborhood
     unit: Unknown
