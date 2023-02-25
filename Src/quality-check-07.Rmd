@@ -1,6 +1,6 @@
 ---
 title: "Quality check 07, Block group intersections with neighborhoods"
-author: "Satya Golla,Mounika Jakkidi and Steve Simon"
+author: "Satya Golla, Mounika Jakkidi, and Steve Simon"
 date: "Created 2022-03-21"
 output: html_document
 knit: (function(inputFile, encoding) {
@@ -9,6 +9,14 @@ knit: (function(inputFile, encoding) {
 ---
 
 This program examines block groups that only partially intersect with community districts.
+
+In the cd.RData file, Rosedale has cd_id=209, Swope Park has cd_id=110.
+
+Interesting neighborhoods might be Terrace Lake Gardens, Colonial Square, Hidden Valley, Crossgates because each of these coincides with a single tract.
+
+Ruskin Heights Eastwood Hills East have four tracts totally inside. Bannister Acres has two tracts totally inside.
+
+Swope Parkway-Elmwood has three tracts, one totally inside and two partially inside. Vineyard is also similar. Glenhaven, East Swope Highlands has two tracts, one totally inside and one mostly outside.
 
 ### Load relevant files
 
