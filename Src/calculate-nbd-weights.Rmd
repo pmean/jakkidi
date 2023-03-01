@@ -151,6 +151,7 @@ bl_nbd_intersection                     %>%
     bg_id,
     bl_id,
     NID,
+   AreaName,
     bl_prop_in,
     people,
     people_in,
