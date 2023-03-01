@@ -65,6 +65,7 @@ bl_nbd_intersection                    %>%
   select(
     bg_id,
     bl_id, 
+    AreaName,
     NID, 
     bl_prop_in)                       -> bl_nbd_intersection
 Sys.time()
@@ -93,7 +94,8 @@ bg_nbd_intersection                    %>%
     bg_prop_in=round(bg_prop_in, 3))   %>%
   select(
     bg_id,
-    NID, 
+    NID,
+    AreaName,
     bg_prop_in)                       -> bg_nbd_intersection
 Sys.time()
 glimpse(bg_nbd_intersection)
