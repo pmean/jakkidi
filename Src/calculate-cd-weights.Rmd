@@ -152,6 +152,7 @@ bl_cd_intersection                     %>%
   select(
     bg_id,
     bl_id,
+    cd_name,
     cd_id,
     bl_prop_in,
     people,

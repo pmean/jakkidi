@@ -62,7 +62,8 @@ bl_cd_intersection                     %>%
   select(
     bg_id,
     bl_id, 
-    cd_id, 
+    cd_id,
+    cd_name,
     bl_prop_in)                         -> bl_cd_intersection
 ```
 
@@ -86,6 +87,7 @@ bg_cd_intersection                     %>%
     bg_prop_in=round(bg_prop_in, 3))   %>%
   select(
     bg_id,
+    cd_name,
     cd_id, 
     bg_prop_in)                         -> bg_cd_intersection
 ```
