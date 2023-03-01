@@ -1,0 +1,42 @@
+---
+data_dictionary: Community districts.zip
+
+authors: Mounika Reddy Jakkidi and Steve Simon
+
+copyright: Uncertain.
+
+creation_date: Unknown
+
+description:  
+  Shapefiles for community districts in the 
+  Kansas City metropolitan area.
+
+format: 
+  proprietary: Shapefile (zip)
+
+  missing-value-code: not needed
+
+  rows: 59
+
+  columns: 4
+
+source:
+  See doc/email-wilson-2022-03-03.pdf
+
+vars:
+ 
+
+  cd_id:
+    label: Sequential id
+
+  cd_Name:
+    label: Name of community district
+    
+    
+  cd_area:
+     label:Area of community district
+  
+  
+  geometry:
+     label:sfc_polygon(object of POLYGON geometries)
+  ---
