@@ -1,5 +1,5 @@
 ---
-title: "Quality check 05, Looking for consistencies in ACS data"
+title: "Quality check, Looking for consistencies in ACS data"
 author: "Satya Golla and Steve Simon"
 date: "Created 2022-04-11"
 output: html_document
