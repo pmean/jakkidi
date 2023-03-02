@@ -1,0 +1,118 @@
+---
+data_dictionary: Community districts.zip
+
+authors: Mounika Reddy Jakkidi and Steve Simon
+
+copyright: Uncertain.
+
+creation_date: Unknown
+
+description:  
+  Shapefiles for community districts in the 
+  Kansas City metropolitan area.
+
+source:
+  See doc/email-Wilson-2022-03-03.pdf
+
+bg_counts:
+
+format: 
+  proprietary: Shapefile (zip)
+
+  missing-value-code: not needed
+
+  rows: 1236
+
+  columns: 6
+
+vars:
+  
+  bg_id:
+  label: block group id
+
+  cd_id:
+  label: community district id 
+
+  people_in:
+  label: people inside census block
+  
+  Units_in:
+  label: housing units inside the block 
+
+  people:
+  label: number of people
+
+  units:
+  label: number of housing units 
+
+bl_counts:
+
+format: 
+  proprietary: Shapefile (zip)
+
+  missing-value-code: not needed
+
+  rows: 18,864
+
+  columns: 9
+
+source:
+  See doc/email-wilson-2022-03-03.pdf
+
+vars:
+ 
+  bl_id:
+  label: block id
+
+  cd_Name:
+  label: Name of the community district
+    
+  cd_id:
+  label: Sequential id
+
+  bl_prop_in:
+  label:  proportion of block inside community district
+
+  people:
+  label: number of people
+  
+  people_in:
+  label: people inside census block
+  
+  units:
+  label: number of housing units 
+  
+  Units_in:
+  label: housing units inside a block
+
+bl_list:
+
+  format: 
+  proprietary: Shapefile (zip)
+  
+  missing-value-code: not needed
+
+  rows:17,547
+
+  columns:5
+
+vars:
+  bg_id:
+  label: block group id
+
+  bl_id:
+  label: block id
+  
+  tr_id:
+  label: tract id
+
+  people:
+  label: number of people
+  
+  people_in:
+  label: people inside census block
+  
+  units:
+  label: number of housing units
+
+---

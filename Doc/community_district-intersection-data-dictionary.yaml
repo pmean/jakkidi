@@ -1,0 +1,70 @@
+---
+data_dictionary: Community districts.zip
+
+authors: Mounika Reddy Jakkidi and Steve Simon
+
+copyright: Uncertain.
+
+creation_date: Unknown
+
+description:  
+  Shapefiles for community districts in the 
+  Kansas City metropolitan area.
+
+source:
+  See doc/email-Wilson-2022-03-03.pdf
+
+bg_cd_intersection:
+
+format: 
+  proprietary: Shapefile (zip)
+
+  missing-value-code: not needed
+
+  rows: 1236
+
+  columns: 4
+
+vars:
+  
+  bg_id:
+  label: block group id
+
+  cd_name:
+  label:label: Name of the community district
+
+  cd_id:
+  label: community district id
+
+  bg_prop_in:
+  label:  proportion of block group inside 
+
+bl_cd_intersection:
+
+format: 
+  proprietary: Shapefile (zip)
+
+  missing-value-code: not needed
+
+  rows: 15,748
+
+  columns: 5
+
+vars:
+
+  bg_id:
+  label: block group id
+
+  bl_id:
+  label:block id
+
+  cd_id:
+  label: community district id
+
+  cd_name:
+  label:label: Name of the community district
+
+  bl_prop_in:
+  label:  proportion of block inside
+
+---
