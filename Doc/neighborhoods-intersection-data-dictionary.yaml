@@ -1,0 +1,67 @@
+---
+data_dictionary: neighborhoods weights.zip
+
+authors: Mounika Reddy Jakkidi and Steve Simon
+
+copyright: Uncertain.
+
+creation_date: Unknown
+
+description:  
+  blocks that partially or completely intersect with neighborhoods
+
+source:
+  See doc/email-Wilson-2022-03-03.pdf
+
+bg_nbd_intersection:
+
+format: 
+  proprietary: Shapefile (zip)
+  
+  missing-value-code: not needed
+
+  rows:2657
+
+  columns:4
+
+vars:
+  bg_id:
+  label: block group id
+
+  NID:
+  label: Numeric id
+  
+  AreaName:
+    label: Name of neighborhood
+  
+  bg_prop_in:
+  label:  proportion of block group inside neighborhood  
+
+bl_nbd_intersection:
+
+format: 
+  proprietary: Shapefile (zip)
+  
+  missing-value-code: not needed
+
+  rows:22,324
+
+  columns:5
+
+vars:
+
+ bg_id:
+  label: block group id
+
+  bl_id:
+  label: block id
+
+  AreaName:
+    label: Name of neighborhood
+  NID:
+  label: Numeric id
+  
+  bl_prop_in:
+  label:  proportion of block inside neighborhood
+
+---  

@@ -1,0 +1,143 @@
+---
+data_dictionary: neighborhoods weights.zip
+
+authors: Mounika Reddy Jakkidi and Steve Simon
+
+copyright: Uncertain.
+
+creation_date: Unknown
+
+description:  
+  calculating census blocks intersect with which neighbourhoods.
+
+source:
+  See doc/email-wilson-2022-03-03.pdf
+
+bg_counts:
+
+format: 
+  proprietary: Shapefile (zip)
+  
+  missing-value-code: not needed
+
+  rows:2048
+
+  columns:6
+
+vars:
+  bg_id:
+  label: block group id
+
+  NID:
+  label: Numeric id
+    
+  people_in:
+  label: people inside census block
+  
+  Units_in:
+  label:housing units inside block
+  
+  people:
+  label:number of people
+  
+  units:
+  label:number of housing units
+  
+bl_counts:
+
+format: 
+  proprietary: Shapefile (zip)
+  
+  missing-value-code: not needed
+
+  rows:25,336
+
+  columns:9
+
+vars:
+  bg_id:
+  label: block group id
+
+  bl_id:
+  label:block id
+
+  NID:
+  label: Numeric id
+  
+  AreaName:
+    label: Name of neighborhood
+  
+  bl_prop_in:
+  label:  proportion of block inside 
+
+  people:
+  label: number of people
+  
+  people_in:
+  label: people inside census block
+  
+  units:
+  label: number of housing units 
+  
+  Units_in:
+  label: housing units inside a block
+  
+  
+bl_list:
+
+  format: 
+  proprietary: Shapefile (zip)
+  
+  missing-value-code: not needed
+
+  rows:19,859
+
+  columns:5
+
+vars:
+  bg_id:
+  label: block group id
+
+  bl_id:
+  label: block id
+  
+  tr_id:
+  label: tract id
+
+  people:
+  label: number of people
+  
+  units:
+  label: number of housing units 
+    
+tr_counts:
+  
+  format: 
+  proprietary: Shapefile (zip)
+  
+  missing-value-code: not needed
+
+  rows:1246
+
+  columns:6
+
+  
+  NID:
+  label: Numeric id
+
+  tr_id:
+  label: tract id
+
+  people:
+  label: number of people
+  
+  people_in:
+  label: people inside census block
+  
+  units:
+  label: number of housing units 
+  
+  Units_in:
+  label: housing units inside block 
+
+  ---
