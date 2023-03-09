@@ -1,5 +1,5 @@
 ---
-title: "Quality check 07, Block group intersections with neighborhoods"
+title: "Quality check, Block group intersections with neighborhoods"
 author: "Satya Golla, Mounika Jakkidi, and Steve Simon"
 date: "Created 2022-03-21"
 output: html_document
@@ -134,9 +134,11 @@ plot(overview_map)
 
 ```{r loop}
 nbd                                    %>%
-  pull(NID)                             -> interesting_nbd
+  pull(AreaName)                       %>%
+  str_subset("Tract", negate=TRUE)     %>%
+  str_subset("Area", negate=TRUE)      -> interesting_nbd
 for (i_NID in interesting_nbd) {
-  # Draw community district in green atop
+  # Draw neighborhood in green atop
   # counties outlined in red
   nbd_subset <- filter(nbd, NID==i_NID) 
   ti <- nbd_subset$AreaName

@@ -87,7 +87,7 @@ clist <- c(
   "29047",
   "29095",
   "29165")
-co$data                                     %>%
+co                                     %>%
   filter(GEOID %in% clist)             -> co
 glimpse(co)
 ```

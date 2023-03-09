@@ -35,6 +35,34 @@ shape1                                   %>%
       ggtitle(file_name)
 ```
 
+### Check units of measurement
+
+There is no indication in the file what units Shape_Leng, Shape_Le_1, and Shape_Area are in. A quick show shows that Shape_Area is in square feet. You divide square feet by 10.764 to get square meters. There is a bit of difference that could be attributed to rounding or a differences in `coordinate reference systems.
+
+I could not figure out how to get length (perimeter?) easily within the sf library, but it is safe to presume that the length measurements in the file are in feet.
+
+```{r}
+st_area(nbd[1:6, ])
+nbd$Shape_Area[1:6]/10.764
+```
+
+### Note on id values
+
+There are three id values in this file, NID, nbr_id, and id. The first is list of three digit numbers with a few having small decimals at the end (e.g., .01, .02). The second is a sequence of consecutive numbers. The third is a sequence of three or four digit numbers, but ther are also 72 values equal to 0. So it makes sense to use nbr_id to quickly and uniquely identify individual neighborhoods rather than NID or id.
+
+```{r}
+cat("NID values\n")
+nbd$NID
+cat("Count of NID zeros\n")
+sum(nbd$NID==0)
+cat("nbr_id values\n")
+nbd$nbr_id
+cat("id values\n")
+nbd$id
+cat("Count of id zeros\n")
+sum(nbd$id==0)
+```
+
 ### Align coordinate reference system
 
 Use the same coordinate reference system that is found in the U.S. Census Bureau's shapefiles. The st_zm function removes an unneeded z dimension.

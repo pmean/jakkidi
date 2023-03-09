@@ -1,5 +1,5 @@
 ---
-title: "Quality check 06, Tract intersections with community districts"
+title: "Quality check, Map tract intersections with community districts"
 author: "Satya Golla and Steve Simon"
 date: "Created 2022-09-04"
 output: html_document
