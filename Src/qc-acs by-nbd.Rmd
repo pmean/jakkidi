@@ -1,6 +1,6 @@
 ---
 title: "Quality check 08, Associate ACS data with neighborhood weights"
-author: "Satya Golla, Mounika Jakkidi and Steve Simon"
+author: "Satya Golla, Mounika Jakkidi, and Steve Simon"
 date: "Created 2022-11-10"
 output: html_document
 knit: (function(inputFile, encoding) {
@@ -34,43 +34,39 @@ path_name <- "../data/"
 
 ```{r}
 load(glue("{path_name}nbd-weights.RData"))
+bg_counts %<>% mutate(tr_id=str_sub(bg_id, 1, 11))
 glimpse(bg_counts)
 ```
 
 ### Build a functions to pull ACS and reweight
 
 ```{r}
-# Prototype functions
-
-get_documentation <- function() {
+get_documentation <- function(vlist) {
   # This function takes a list of ACS 
   # variable names (very cryptic!) and
   # gets an interpretable explanation
   # of what these variables mean.
   
   # Use the load_variables function.
+  load_variables(2020, "acs5", cache = TRUE) %>%
+    inner_join(data.frame(name=vlist), by="name")
 }
 
+vlist <- c("B25001_001", "B25002_001", "B25002_002", "B25002_003")
+get_documentation(vlist)
+```
+
+```{r}
 pull_acs <- function(vlist) {
   # This function takes a list of ACS
-  # variable names, pulls the data
-  # from ACS and reweights the data
-  # to allocate it to specific
-  # neighborhoods or community
-  # districts.
+  # variable names and pulls the data
+  # from ACS
   
   # get acs for each county
 
   co_list <- data.frame(
-    co=c(
-      "Cass",
-      "Clay",
-      "Jackson",
-      "Platte",
-      "Johnson",
-      "Leavenworth",
-      "Wyandotte"),
-    st=rep(c("MO", "KS"), c(4, 3))
+    co=c(37, 47, 95, 165, 91, 103, 209),
+    st=rep(c(29, 20), c(4, 3))
   )  
 
   acs_vlist <- NULL
@@ -80,18 +76,48 @@ pull_acs <- function(vlist) {
       variables = vlist, 
       state=co_list$st[i],
       county=co_list$co[i],
-      year = 2020) %>%
+      year = 2020,
+      survey="acs5") %>%
     bind_rows(acs_vlist)
   }
-  
-
-  # join with either bg_counts or
-  # tr_counts.
-  
-  # sum across neighborhoods.
-  
+  return(acs_vlist)
 }
 
+acs_vlist <- pull_acs(vlist)
+```
+
+```{r}
+reweight_acs_counts <- function(weight_data, acs_vlist) {
+  # to merge properly, weight_data needs a 
+  # comparable GEOID. For tracts, that is 
+  # an 11 digit code. For block_groups,
+  # that is a 12 digit code.
+  
+  # This program reweights any ACS data that 
+  # represents a count of people or housing
+  # units meeting a certain criteria.
+  #
+  # If the ACS data represents a mean, median,
+  # or proportion, a slightly different approach
+  # is needed.
+  
+  acs_vlist %>%
+    inner_join(weight_data, by=c("GEOID")) %>%
+    arrange(NID, GEOID, variable) %>%
+    mutate(unit_weight=units_in/units) %>%
+    mutate(estimate=estimate*w) %>%
+    group_by(NID, variable) %>%
+    summarize(estimate=sum(estimate)) %>%
+    mutate(estimate=round(estimate))
+}
+
+bg_counts %>% 
+  rename(GEOID=bg_id) %>%
+  mutate(w=units_in/units) %>%
+  reweight_acs_counts(acs_vlist)
+```
+
+```{r}
 display_acs <- function() {
 # This function displays ACS data
 # for one or more neighborhoods or
@@ -104,7 +130,7 @@ display_acs <- function() {
 ```{r}
 vlist <- c("B25001_001", "B25002_001", "B25002_002", "B25002_003")
 load_variables(2020, "acs5", cache = TRUE) %>%
-  filter(name %in% vlist)
+  filter(name %in% vlist) %>% print
 
 b25002_jackson <- get_acs(
   geography = "cbg", 
@@ -165,7 +191,7 @@ glimpse(b25002_all_counties)
 b25002_all_counties %>%
   inner_join(bg_counts, by=c("GEOID"="bg_id")) %>%
   arrange(NID, GEOID, variable) -> b25002_nbd
-b25002_nbd
+glimpse(b25002_nbd)
 ```
 
 ### Sum across neighborhoods
