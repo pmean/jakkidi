@@ -48,9 +48,9 @@ vars:
 
   Shape_Leng:
     label: Perimeter of neighborhood
-    unit: Unknown
+    unit: Unknown, presumably sqhare feet
 
   Shape_Area:
     label: Area of neighborhood
-    unit: Unknown
+    unit: Square feet
   ---
