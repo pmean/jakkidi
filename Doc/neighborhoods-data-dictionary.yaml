@@ -1,7 +1,7 @@
 ---
 data_dictionary: neighborhoods.zip
 
-authors: Mounika Reddy Jakkidi,Satya Golla and Steve Simon
+authors: Mounika Reddy Jakkidi, Satya Golla, and Steve Simon
 
 copyright: Uncertain.
 
@@ -48,9 +48,9 @@ vars:
 
   Shape_Leng:
     label: Perimeter of neighborhood
-    unit: Unknown
+    unit: Feet
 
   Shape_Area:
     label: Area of neighborhood
-    unit: Unknown
+    unit: Square feet
   ---
