@@ -1,14 +1,14 @@
 ---
-title: "Quality check 03, Block group intersections with community districts"
+title: "Quality check 03, List blocks in block groups split by community districts"
 author: "Satya Golla and Steve Simon"
-date: "Created 2022-03-21"
+date: "Created 2023-03-30"
 output: html_document
 knit: (function(inputFile, encoding) {
   rmarkdown::render(inputFile, encoding = encoding,
   output_dir = "../results", output_format = "all") })  
 ---
 
-This program examines block groups that only partially intersect with community districts.
+This program lists blocks within block groups that only partially intersect with community districts.
 
 ### Load relevant files
 
@@ -61,7 +61,6 @@ glimpse(co)
 
 ```{r}
 load(glue("{path_name}cd-intersections.RData"))
-# glimpse(tr_cd_intersection)
 glimpse(bg_cd_intersection)
 glimpse(bl_cd_intersection)
 ```
@@ -74,6 +73,13 @@ glimpse(bg_counts)
 glimpse(bg_list)
 glimpse(bl_counts)
 glimpse(bl_list)
+```
+
+### Contents of red
+
+```{r}
+load(glue("{path_name}red.RData"))
+glimpse(red)
 ```
 
 ### Subset co to seven counties
@@ -124,7 +130,7 @@ plot(overview_map)
 
 ### High level view
 
-```{r loop}
+```{r pull-interesting-cd-ids}
 name_list <- c(
   "Brookside",
   "Midtown",
@@ -136,13 +142,68 @@ name_list <- c(
   "Little Blue Valley",
   "Rosedale",
   "Argentine")
+
 cd                                     %>%
   filter(cd_name %in% name_list)       %>%
   pull(cd_id)                           -> interesting_cd
+```
+
+```{r pull-information}
+pick_bg <- function(da, i_bg) {
+  # Use this with
+  #    bg
+  #    bl
+  da                                  %>%
+    filter(bg_id %in% i_bg)           %>%
+    return
+}
+
+pick_bg_cd <- function(da, i_bg, i_cd) {
+  # Use this with
+  #   bg_cd_intersection
+  #   bg_counts
+  #   bl_counts
+  #   red
+  da                                  %>%
+    filter(bg_id %in% i_bg)           %>%
+    filter(cd_id %in% i_cd)           %>%
+    return
+}
+
+pick_bl <- function(da, i_bg) {
+  # Use this with
+  #    bl
+  da                                  %>%
+    filter(bg_id %in% i_bg)           %>%
+    return
+}
+
+pick_bl_cd <- function(da, i_bl, i_cd) {
+  # Use this with
+  #   bl_cd_intersection
+  #   bl_counts
+  #   red
+  da                                  %>%
+    filter(bl_id %in% i_bl)           %>%
+    filter(cd_id %in% i_cd)           %>%
+    return
+}
+
+pick_cd <- function(da, i_cd) {
+  # Use this with
+  #    cd
+  da                                  %>%
+    filter(cd_id %in% i_cd)           %>%
+    return
+}
+
+```
+
+```{r loop}
 for (i_cd in interesting_cd) {
   # Draw community district in green atop
   # counties outlined in red
-  cd_subset <- filter(cd, cd_id==i_cd) 
+  cd_subset <- filter(cd, cd_id==i_cd)
   ti <- cd_subset$cd_name
   overview_map                          +
     ggtitle(ti)                         +
@@ -188,28 +249,90 @@ for (i_cd in interesting_cd) {
   # draw block groups and blocks outlined
   # in red atop community district in green.
   for (i_bg in bg_list) {
-    bg_cd_intersection                 %>%
-      filter(cd_id==i_cd)              %>%
-      filter(bg_id==i_bg)              %>%
+    bl %>% pick_bg(i_bg) -> bl_subset
+
+    bg_cd_intersection %>% 
+      pick_bg_cd(i_bg, i_cd) %>%
       pull(bg_prop_in)                  -> p
+    
+    if (length(p) != 1) {
+      print("Error: multiple bg values")
+      next
+    }
+
     if (p < 0.1) next
+    
     if (p > 0.9) next
-    bl_subset <- filter(bl, str_sub(bl_id, 1, 12)==i_bg)
+
+    print("bg_counts")
+    bg_counts                          %>%
+      pick_bg(i_bg)                    %>%
+      data.frame                       %>%
+      print      
+    
+    print("bl_counts")
+    bl_counts                          %>%
+      pick_bg(i_bg)                    %>%
+      data.frame                       %>%
+      print 
+    
+    print("bg_cd_intersection")
+    bg_cd_intersection                 %>%
+      pick_bg_cd(i_bg, i_cd)           %>%
+      data.frame                       %>%
+      print 
+    
+    print("bg_counts")
+    bg_counts                          %>%
+      pick_bg_cd(i_bg, i_cd)           %>%
+      data.frame                       %>%
+      print 
+    
+    print("bl_counts")
+    bl_counts                          %>%
+      pick_bg_cd(i_bg, i_cd)           %>%
+      data.frame                       %>%
+      print 
+    
+    print("red")
+    red                                %>%
+      pick_bg(i_bg)                    %>%
+      data.frame                       %>%
+      print 
+
+    # bl_points <- st_point_on_surface(bl_subset)
+    # bl_coords <- as.data.frame(st_coordinates(bl_points))
+    # bg_coords$NAME <- str_sub(bg_subset$bg_id, 6, 12)
+
+    print(names(cd_subset))
+    print(names(bl_subset))
     ggplot(cd_subset)                   +
       ggtitle(ti)                       +
       xlab("Longitude")                 +
       ylab("Latitude")                  +
-    geom_sf(
-      data=cd_subset,
-      aes(),
-      fill="lightgreen",
-      color=NA)                         +
-    geom_sf(
-      data=bl_subset,
-      aes(),
-      fill=NA,
-      color="darkred")                  -> map3
-    plot(map3)
+      geom_sf(
+        data=cd_subset,
+        aes(),
+        fill="lightgreen",
+        color=NA) -> map3
+    map3                                +
+      geom_sf(
+        data=bl_subset,
+        aes(),
+        fill=NA,
+        color="darkred")                +
+      ggtitle(i_bg)                     -> map4
+    plot(map4)
+
+    ggplot(bl_subset)                   +
+      xlab("Longitude")                 +
+      ylab("Latitude")                  +
+      geom_sf(
+        aes(),
+        fill=NA,
+        color="darkred")                +
+      ggtitle(i_bg)                     -> map5
+    plot(map5)
   }
 }
 ```

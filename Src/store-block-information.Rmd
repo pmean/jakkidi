@@ -170,10 +170,14 @@ bl                                     %>%
   mutate(
     bl_area=
       as.numeric(st_area(bl)))         %>%
+  mutate(bg_id=str_sub(bl_id, 1, 12))  %>%
+  mutate(tr_id=str_sub(bl_id, 1, 11))  %>%
   select(
     bl_id,
     bl_name,
     bl_area,
+    bg_id,
+    tr_id,
     geometry)                           -> bl
 glimpse(bl)
 ```
