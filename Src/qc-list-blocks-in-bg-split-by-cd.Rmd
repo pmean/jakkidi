@@ -199,11 +199,20 @@ pick_cd <- function(da, i_cd) {
 
 ```
 
-```{r loop}
-for (i_cd in interesting_cd) {
+```{r plot-pieces}
+terse <- TRUE
+calc_cd_subset <- function(cd, i_cd) {
+  cd_subset <- cd[cd$cd_id==i_cd, ]
+  if (terse) return(cd_subset)
+  cat(glue("i_cd = {i_cd}"))
+  cat("cd_subset")
+  glimpse(cd_subset)
+  return(cd_subset)  
+}
+
+plot_co_cd <- function(overview_map, cd_subset) {
   # Draw community district in green atop
   # counties outlined in red
-  cd_subset <- filter(cd, cd_id==i_cd)
   ti <- cd_subset$cd_name
   overview_map                          +
     ggtitle(ti)                         +
@@ -211,22 +220,36 @@ for (i_cd in interesting_cd) {
       data=cd_subset,
       aes(),
       fill="lightgreen",
-      color=NA)                         -> map1
-  plot(map1)
+      color=NA)
+}
 
-  # draw community districts in green with
-  # block groups outlined in red.
+calc_bg_subset <- function(bg_cd_interestion, i_cd) {
   bg_cd_intersection                   %>%
     filter(cd_id==i_cd)                %>%
     filter(bg_prop_in > 0.10)          %>%
     pull(bg_id)                         -> bg_list
   bg                                   %>%
     filter(bg_id %in% bg_list)          -> bg_subset
+  if (terse) return(bg_subset)
+  cat("bg_subset")
+  glimpse(bg_subset)
+  return(bg_subset)
+}
 
+calc_bg_text <- function(bg_subset) {
   bg_points <- st_point_on_surface(bg_subset)
   bg_coords <- as.data.frame(st_coordinates(bg_points))
   bg_coords$NAME <- str_sub(bg_subset$bg_id, 6, 12)
+  bg_coords
+  if (terse) return(bg_coords)
+  cat("bg_coords")
+  glimpse(bg_coords)
+  return(bg_coords)
+}
 
+plot_cd <- function(cd_subset) {
+  # draw community districts in green
+  ti <- cd_subset$cd_name
   ggplot(cd_subset)                     +
     ggtitle(ti)                         +
     xlab("Longitude")                   +
@@ -235,77 +258,109 @@ for (i_cd in interesting_cd) {
         data=cd_subset,
         aes(),
         fill="lightgreen",
-        color=NA)                       +
-    geom_text(
-      data=bg_coords, 
-      aes(X, Y, label=NAME))            +
+        color=NA)
+}
+
+overlay_bg_borders <- function(cd_map, bg_subset) {
+  cd_map                               +
     geom_sf(
       data=bg_subset,
       aes(),
       fill=NA,
-      color="darkred")                  -> map2
-  plot(map2)
+      color="darkred")    
+}
 
-  # draw block groups and blocks outlined
-  # in red atop community district in green.
-  for (i_bg in bg_list) {
+overlay_bg_text <- function(cd_map, bg_coords) {
+  cd_map                                +
+    geom_text(
+      data=bg_coords, 
+      aes(X, Y, label=NAME))
+}
+```
+
+```{r loop, warnings=FALSE, message=FALSE}
+for (i_cd in interesting_cd[1:3]) {
+  # Pick subsets
+  cd %>% pick_cd(i_cd) -> cd_subset
+  bg_cd_intersection                  %>%
+    pick_cd(i_cd)                     %>%
+    select(bg_id, bg_prop_in)         %>%
+    filter(bg_prop_in > 0.1)           -> bg_list
+  bg                                  %>%
+    filter(bg_id %in% bg_list$bg_id)   -> bg_subset
+  bg_coords <- calc_bg_text(bg_subset)
+
+  print(glue("Start processing for {cd_subset$cd_name}"))
+  print("bg_list"); glimpse(bg_list)
+  print("bg_subset"); glimpse(bg_subset)
+  print("bg_coords"); glimpse(bg_coords)
+
+  # plot overview
+  plot_co_cd(overview_map, cd_subset)  -> o_map
+  # plot(o_map)
+  
+  # plot intersecting block groups
+  plot_cd(cd_subset)                  %>%
+    overlay_bg_borders(bg_subset)     %>%
+    overlay_bg_text(bg_coords)         -> i_map
+  # plot(i_map)
+  
+  # remove interior block groups
+  bg_list %<>% filter(bg_prop_in <= 0.9)
+  if (nrow(bg_list)==0) next
+  print(glue("Entering loop for {cd_subset$cd_name}"))
+  for (i_bg in bg_list$bg_id) {
+    print(glue("Looping index = {i_bg}"))
     bl %>% pick_bg(i_bg) -> bl_subset
-
-    bg_cd_intersection %>% 
-      pick_bg_cd(i_bg, i_cd) %>%
-      pull(bg_prop_in)                  -> p
-    
-    if (length(p) != 1) {
-      print("Error: multiple bg values")
-      next
-    }
-
-    if (p < 0.1) next
-    
-    if (p > 0.9) next
 
     print("bg_counts")
     bg_counts                          %>%
-      pick_bg(i_bg)                    %>%
-      data.frame                       %>%
-      print      
-    
-    print("bl_counts")
+      pick_bg_cd(i_bg, i_cd)           %>%
+      data.frame                        -> view_bg_counts
+    view_bg_counts                     %>%
+      print
+        print("bl_counts")
     bl_counts                          %>%
-      pick_bg(i_bg)                    %>%
-      data.frame                       %>%
+      pick_bg_cd(i_bg, i_cd)           %>%
+      mutate(
+        prop_in = round(100*prop_in))  %>%
+      data.frame                        -> view_bl_counts
+    view_bl_counts                     %>%
       print 
     
     print("bg_cd_intersection")
     bg_cd_intersection                 %>%
       pick_bg_cd(i_bg, i_cd)           %>%
-      data.frame                       %>%
-      print 
-    
-    print("bg_counts")
-    bg_counts                          %>%
-      pick_bg_cd(i_bg, i_cd)           %>%
-      data.frame                       %>%
-      print 
-    
-    print("bl_counts")
-    bl_counts                          %>%
-      pick_bg_cd(i_bg, i_cd)           %>%
-      data.frame                       %>%
+      mutate(
+        bg_prop_in = 
+          round(100*bg_prop_in))       %>%
+      data.frame                        -> view_bl_cd
+    view_bl_cd                         %>%
       print 
     
     print("red")
     red                                %>%
       pick_bg(i_bg)                    %>%
-      data.frame                       %>%
+      data.frame                        -> view_red
+    view_red                           %>%
       print 
 
-    # bl_points <- st_point_on_surface(bl_subset)
-    # bl_coords <- as.data.frame(st_coordinates(bl_points))
-    # bg_coords$NAME <- str_sub(bg_subset$bg_id, 6, 12)
+  }
+  print(
+    glue(
+      "Completed all loops for {cd_subset$cd_name}"))
 
-    print(names(cd_subset))
-    print(names(bl_subset))
+  # draw community districts in green with
+  # block groups outlined in red.
+
+  # draw block groups and blocks outlined
+  # in red atop community district in green.
+}
+```
+
+```{r, eval=FALSE}
+  for (i_bg in bg_subset$bg_id) {
+    # Plot community district
     ggplot(cd_subset)                   +
       ggtitle(ti)                       +
       xlab("Longitude")                 +
@@ -315,6 +370,7 @@ for (i_cd in interesting_cd) {
         aes(),
         fill="lightgreen",
         color=NA) -> map3
+    # Overlay blocks associated with a block group
     map3                                +
       geom_sf(
         data=bl_subset,
@@ -324,15 +380,67 @@ for (i_cd in interesting_cd) {
       ggtitle(i_bg)                     -> map4
     plot(map4)
 
-    ggplot(bl_subset)                   +
+    # Recalculate intersections
+    cd_subset                         %>%
+      st_intersection(bl_subset)       -> intersect_subsets
+    print("intersect_subsets")
+    glimpse(intersect_subsets)
+
+    # Associate text with interior data points
+    bl_subset                          %>%
+      inner_join(red, by="bl_id")      %>%
+      mutate(
+        bl_id=str_sub(bl_id, 13, 15))   -> bl_labels
+    bl_labels                          %>%
+      st_point_on_surface              %>%
+      st_coordinates                   %>%
+      data.frame                       %>%
+      bind_cols(bl_labels)              -> bl_text
+    print("bl_labels")
+    glimpse(bl_labels)
+    print("bl_text")
+    glimpse(bl_text)
+    save(bl_text, file=glue("../data/bg_{i_bg}.RData"))
+
+    # Close-up plot of just the blocks
+    ggplot(intersect_subsets)           +
       xlab("Longitude")                 +
       ylab("Latitude")                  +
       geom_sf(
+        aes(),
+        fill="green",
+        color="green")                  +
+      geom_sf(
+        data=bl_subset,
         aes(),
         fill=NA,
         color="darkred")                +
       ggtitle(i_bg)                     -> map5
     plot(map5)
+    next
+    # Overlay block id
+    map5                                +
+      geom_text(
+        data=bl_text,
+        aes(x=X, y=Y, label=bl_id))     +
+      ggtitle("Block ids, {i_bg}")     %>%
+    plot
+
+    # Overlay people count
+    map5                                +
+      geom_text(
+        data=bl_text,
+        aes(x=X, y=Y, label=people))    +
+      ggtitle("People, {i_bg}")        %>%
+    plot
+
+    # Overlay housing unit count
+    map5                                +
+      geom_text(
+        data=bl_text,
+        aes(x=X, y=Y, label=units))     +
+      ggtitle("Housing units, {i_bg}") %>%
+    plot
   }
 }
 ```
