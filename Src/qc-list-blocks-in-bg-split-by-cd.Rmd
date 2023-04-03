@@ -311,8 +311,8 @@ for (i_cd in interesting_cd[1:3]) {
   print(glue("Entering loop for {cd_subset$cd_name}"))
   for (i_bg in bg_list$bg_id) {
     print(glue("Looping index = {i_bg}"))
-    bl %>% pick_bg(i_bg) -> bl_subset
-
+    bl$bg_id <- str_sub(bl$bl_id, 1, 12)
+    bl %>% pick_bg(i_bg)                -> bl_subset
     print("bg_counts")
     bg_counts                          %>%
       pick_bg_cd(i_bg, i_cd)           %>%
@@ -338,12 +338,14 @@ for (i_cd in interesting_cd[1:3]) {
     view_bl_cd                         %>%
       print 
     
-    print("red")
+    print("red-file")
     red                                %>%
       pick_bg(i_bg)                    %>%
       data.frame                        -> view_red
     view_red                           %>%
       print 
+    
+    
 
   }
   print(
