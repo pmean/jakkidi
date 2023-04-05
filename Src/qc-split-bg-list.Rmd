@@ -27,59 +27,76 @@ library(sf)
 library(tidyverse)
 library(dplyr)
 path_name <- "../data/"
+terse <- TRUE
 ```
+
+```{r}
+conditional_glimpse <- function(x) {
+  if (terse) return(invisible())
+  cat("\n\n")
+  cat(deparse(substitute(x)))
+  cat("\n\n")
+  glimpse(x)
+  cat("\n\n")
+  return(invisible())
+}
+
+test1 <- data.frame(x=1:3, y=4:6)
+conditional_glimpse(test1)
+```
+
 
 ### Contents of bg
 
 ```{r}
 load(glue("{path_name}bg.RData"))
-glimpse(bg)
+conditional_glimpse(bg)
 ```
 
 ### Contents of bl
 
 ```{r}
 load(glue("{path_name}bl.RData"))
-glimpse(bl)
+conditional_glimpse(bl)
 ```
 
 ### Contents of cd
 
 ```{r}
 load(glue("{path_name}cd.RData"))
-glimpse(cd)
+conditional_glimpse(cd)
 ```
 
 ### Contents of co
 
 ```{r}
 load(glue("{path_name}co.RData"))
-glimpse(co)
+conditional_glimpse(co)
 ```
 
 ### Contents of cd-intersections
 
 ```{r}
 load(glue("{path_name}cd-intersections.RData"))
-glimpse(bg_cd_intersection)
-glimpse(bl_cd_intersection)
+conditional_glimpse(bg_cd_intersection)
+conditional_glimpse(bl_cd_intersection)
 ```
 
 ### Contents of cd-weights
 
 ```{r}
 load(glue("{path_name}cd-weights.RData"))
-glimpse(bg_counts)
-glimpse(bg_list)
-glimpse(bl_counts)
-glimpse(bl_list)
+conditional_glimpse(bg_counts)
+conditional_glimpse(bg_list)
+conditional_glimpse(bl_counts)
+conditional_glimpse(bl_list)
 ```
 
 ### Contents of red
 
 ```{r}
 load(glue("{path_name}red.RData"))
-glimpse(red)
+conditional_glimpse(red)
 ```
 
 ### Subset co to seven counties
@@ -95,7 +112,7 @@ clist <- c(
   "29165")
 co                                     %>%
   filter(GEOID %in% clist)             -> co
-glimpse(co)
+conditional_glimpse(co)
 ```
 
 ### Get id values for all community districts
@@ -106,26 +123,6 @@ cd                                     %>%
   distinct(cd_id)                      %>%
   arrange(cd_id)                       %>%
   pull(cd_id)                           -> cd_list
-```
-
-### Draw an overview map
-
-```{r}
-co_points <- st_point_on_surface(co)
-co_coords <- as.data.frame(st_coordinates(co_points))
-co_coords$NAME <- co$NAME
-
-ggplot()+
-  geom_sf(
-    data=co, 
-    color="darkred", 
-    fill=NA)                            +
-  geom_text(
-    data=co_coords, 
-    aes(X, Y, label=NAME))              +
-  xlab("Longitude")                     +
-  ylab("Latitude")                      -> overview_map
-plot(overview_map)
 ```
 
 ### High level view
@@ -200,44 +197,7 @@ pick_cd <- function(da, i_cd) {
 ```
 
 ```{r plot-pieces, echo=FALSE}
-terse <- TRUE
-calc_cd0 <- function(cd, i_cd) {
-  cd0 <- cd[cd$cd_id==i_cd, ]
-  if (terse) return(cd0)
-  cat(glue("i_cd = {i_cd}"))
-  cat("cd0")
-  glimpse(cd0)
-  return(cd0)  
-}
-
-plot_co_cd <- function(overview_map, cd0) {
-  # Draw community district in green atop
-  # counties outlined in red
-  ti <- cd0$cd_name
-  overview_map                          +
-    ggtitle(ti)                         +
-    geom_sf(
-      data=cd0,
-      aes(),
-      fill="lightgreen",
-      color=NA)
-}
-
-calc_bg0 <- function(bg_cd_interestion, i_cd) {
-  bg_cd_intersection                   %>%
-    filter(cd_id==i_cd)                %>%
-    filter(bg_prop_in > 0.10)          %>%
-    pull(bg_id)                         -> bg_list
-  bg                                   %>%
-    filter(bg_id %in% bg_list)          -> bg0
-  if (terse) return(bg0)
-  cat("bg0")
-  glimpse(bg0)
-  return(bg0)
-}
-
-
-print_block_and_bg_data <- function(i_bg) {
+merge_info <- function(i_bg) {
   bl %>% pick_bg(i_bg)                -> bl0
 
   bl_counts                          %>%
@@ -257,7 +217,6 @@ print_block_and_bg_data <- function(i_bg) {
     pick_bg(i_bg)                    %>%
     data.frame                        -> view_red
 
-  print("merged data")
   view_red                           %>%
     select(-bg_id)                   %>%
     full_join(
@@ -274,25 +233,7 @@ print_block_and_bg_data <- function(i_bg) {
       desc(prop_in), 
       desc(people))                  %>%
     data.frame                        -> view_merge
-  view_merge                         %>%
-    print
-
-  print("Summation for merged data")
-  view_merge                         %>%
-    summarize(
-      people_in=sum(people_in, na.rm=TRUE),
-      units_in=sum(units_in, na.rm=TRUE),
-      people=sum(people, na.rm=TRUE),
-      units=sum(units, na.rm=TRUE))  %>%
-    print
-    
-  print("bg_counts")
-  bg_counts                          %>%
-    pick_bg_cd(i_bg, i_cd)           %>%
-    data.frame                        -> view_bg_counts
-  view_bg_counts                     %>%
-    print
-
+  view_merge[is.na(view_merge)] <- 0
   return(view_merge)
 }
 ```
@@ -305,7 +246,7 @@ calc_sf_text <- function(sf0, sf_id) {
     bind_cols(sf0[ , sf_id])     -> sf_coords
   if (terse) return(sf_coords)
   cat("sf_coords")
-  glimpse(sf_coords)
+  conditional_glimpse(sf_coords)
   return(sf_coords)
 }
 
@@ -335,22 +276,36 @@ plot_green <- function(sf1, sf2, sf_text) {
       aes(label=.data[[sf_text]]))       -> m3
   return(m3)
 }
-```
+check_bl <- function(view_merge) {
+  cat("Blocks inside cd\n\n")
+  view_merge                         %>%
+    filter(prop_in > 10)             %>%
+    print
 
-```{r}
-i_cd <- interesting_cd[1]
-cd %>% pick_cd(i_cd) -> cd0
-plot_green(cd0, co, "NAME")      +
-  ggtitle(cd0$cd_name)           -> o_map
-plot(o_map)
-```
+  cat("\nBlocks outside cd\n\n")
+  view_merge                         %>%
+    filter(
+      is.na(prop_in) | 
+      prop_in <= 10)                 %>%
+    print
 
+  cat("\nTotals\n\n")
+  view_merge                         %>%
+    summarize(
+      people_in=sum(people_in, na.rm=TRUE),
+      units_in=sum(units_in, na.rm=TRUE),
+      people=sum(people, na.rm=TRUE),
+      units=sum(units, na.rm=TRUE))  %>%
+    print
+}
+```
 
 ```{r loop, warnings=FALSE, message=FALSE, echo=FALSE}
-for (i_cd in interesting_cd[1:3]) {
+for (i_cd in interesting_cd) {
   # add extra information to bl and bg
   bl$bg_id <- str_sub(bl$bl_id, 1, 12)
   bg$ab <- str_sub(bg$bg_id, 6, 12)
+  bl$ab <- str_sub(bl$bl_id, 13, 15)
   
   # Pick subsets
   cd %>% pick_cd(i_cd) -> cd0
@@ -380,35 +335,58 @@ for (i_cd in interesting_cd[1:3]) {
   if (nrow(bg_list)==0) next
   bg                                  %>%
     filter(bg_id %in% bg_list$bg_id)   -> bg0
+  
   for (i_bg in bg_list$bg_id) {
-    merged_data <- print_block_and_bg_data(i_bg)
+    merged_data <- merge_info(i_bg)
  
     # Create subset of bl
-    bl                                %>%
-      filter(bg_id==i_bg)             %>%
-      mutate(
-        ab=str_sub(bl_id, 13, 15))     -> bl0
+    bl0 <- filter(bl, bg_id==i_bg)
+    bl0                                %>%
+      inner_join(
+        merged_data,
+        by="bl_id")                     -> bl0
     
     # Calculate intersections of individual blocks
-    cd0                         %>%
-      st_intersection(bl0)       -> in0
-    print("in0")
-    glimpse(in0)
-
+    in0 <- st_intersection(cd0, bl0)
+    
     # plot blocks with abbreviated ids
     ti <- glue("Block ids for {i_bg}")
     plot_green(in0, bl0, "ab")         +
       ggtitle(ti)                      -> j_map
     plot(j_map)
  
-    # plot blocks with people
-    bl0                                %>%
-      inner_join(merged_data)           -> bl0
-    ti <- glue("People counts for {i_bg}")
+    # plot blocks with percentage area inside
+    ti <- glue("Percentage areas inside for {i_bg}")
+    plot_green(in0, bl0, "prop_in")    +
+      ggtitle(ti)                      -> r_map
+    plot(r_map)
+ 
+    bg_cd_counts <- pick_bg_cd(bg_counts, i_bg, i_cd)
+    # label with people
+    ti <- glue(
+      "{i_bg} has {bg_cd_counts$people_in}",
+      " people inside\n{cd0$cd_name} and",
+      " {bg_cd_counts$people} people total")
     plot_green(in0, bl0, "people")      +
       ggtitle(ti)                       -> p_map 
     plot(p_map)
-  }
+
+    # label with units
+    ti <- glue(
+      "{i_bg} has {bg_cd_counts$units_in}",
+      " units inside\n{cd0$cd_name} and",
+      " {bg_cd_counts$units} units total")
+    plot_green(in0, bl0, "units")      +
+      ggtitle(ti)                       -> u_map 
+    plot(u_map)
+    
+    check_bl(merged_data)
+    cat("\nCross check\n\n")
+    bg_cd_counts                      %>%
+      data.frame                      %>%
+      select(3:6)                     %>%
+      print
+    }
 }
 ```
 
