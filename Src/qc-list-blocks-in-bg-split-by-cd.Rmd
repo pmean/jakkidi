@@ -29,6 +29,41 @@ library(dplyr)
 path_name <- "../data/"
 ```
 
+### Test acs download
+
+```{r}
+library(tidycensus)
+county_list <- c(
+  "Johnson",
+  "Leavenworth",
+  "Wyandotte",
+  "Cass",
+  "Clay",
+  "Jackson",
+  "Platte")
+state_list <- rep(c("KS", "MO"), c(3,4))
+
+vlist <- c("B01001_003", "B01001_027")
+load_variables(2020, "acs5", cache = TRUE) %>%
+  filter(name %in% vlist)
+
+acs_children <- NULL
+for (i in 1:7) {
+  acs1 <- get_acs(
+    geography = "cbg", 
+    variables = vlist, 
+    state=state_list[i],
+    county=county_list[i],
+    year = 2020)
+  acs_children <- rbind(acs_children, acs1)
+}
+glimpse(acs_children)
+acs_children %<>% 
+  group_by(GEOID) %>% 
+  summarize(estimate=sum(estimate))
+glimpse(acs_children)
+```
+
 ### Contents of bg
 
 ```{r}
@@ -402,102 +437,41 @@ for (i_cd in interesting_cd[1:3]) {
       overlay_bg_text(bl_coords)       -> m_map
     plot(m_map)
   }
-  
-  print(
-    glue(
-      "Completed all loops for {cd_subset$cd_name}"))
-
-  # draw community districts in green with
-  # block groups outlined in red.
-
-  # draw block groups and blocks outlined
-  # in red atop community district in green.
 }
 ```
 
-```{r, eval=FALSE}
-  for (i_bg in bg_subset$bg_id) {
-    # Plot community district
-    ggplot(cd_subset)                   +
-      ggtitle(ti)                       +
-      xlab("Longitude")                 +
-      ylab("Latitude")                  +
-      geom_sf(
-        data=cd_subset,
-        aes(),
-        fill="lightgreen",
-        color=NA) -> map3
-    # Overlay blocks associated with a block group
-    map3                                +
-      geom_sf(
-        data=bl_subset,
-        aes(),
-        fill=NA,
-        color="darkred")                +
-      ggtitle(i_bg)                     -> map4
-    plot(map4)
+### Test acs download
 
-    # Recalculate intersections
-    cd_subset                         %>%
-      st_intersection(bl_subset)       -> intersect_subsets
-    print("intersect_subsets")
-    glimpse(intersect_subsets)
+```{r}
+library(tidycensus)
+county_list <- c(
+  "Johnson",
+  "Leavenworth",
+  "Wyandotte",
+  "Cass",
+  "Clay",
+  "Jackson",
+  "Platte")
+state_list <- rep(c("KS", "MO"), c(3,4))
 
-    # Associate text with interior data points
-    bl_subset                          %>%
-      inner_join(red, by="bl_id")      %>%
-      mutate(
-        bl_id=str_sub(bl_id, 13, 15))   -> bl_labels
-    bl_labels                          %>%
-      st_point_on_surface              %>%
-      st_coordinates                   %>%
-      data.frame                       %>%
-      bind_cols(bl_labels)              -> bl_text
-    print("bl_labels")
-    glimpse(bl_labels)
-    print("bl_text")
-    glimpse(bl_text)
-    save(bl_text, file=glue("../data/bg_{i_bg}.RData"))
+vlist <- c("B01001_003", "B01001_027")
+load_variables(2020, "acs5", cache = TRUE) %>%
+  filter(name %in% vlist)
 
-    # Close-up plot of just the blocks
-    ggplot(intersect_subsets)           +
-      xlab("Longitude")                 +
-      ylab("Latitude")                  +
-      geom_sf(
-        aes(),
-        fill="green",
-        color="green")                  +
-      geom_sf(
-        data=bl_subset,
-        aes(),
-        fill=NA,
-        color="darkred")                +
-      ggtitle(i_bg)                     -> map5
-    plot(map5)
-    next
-    # Overlay block id
-    map5                                +
-      geom_text(
-        data=bl_text,
-        aes(x=X, y=Y, label=bl_id))     +
-      ggtitle("Block ids, {i_bg}")     %>%
-    plot
-
-    # Overlay people count
-    map5                                +
-      geom_text(
-        data=bl_text,
-        aes(x=X, y=Y, label=people))    +
-      ggtitle("People, {i_bg}")        %>%
-    plot
-
-    # Overlay housing unit count
-    map5                                +
-      geom_text(
-        data=bl_text,
-        aes(x=X, y=Y, label=units))     +
-      ggtitle("Housing units, {i_bg}") %>%
-    plot
-  }
+acs_children <- NULL
+for (i in 1:7) {
+  acs1 <- get_acs(
+    geography = "cbg", 
+    variables = vlist, 
+    state=state_list[i],
+    county=county_list[i],
+    year = 2020)
+  acs_children <- rbind(acs_children, acs1)
 }
+glimpse(acs_children)
+acs_children %<>% 
+  group_by(GEOID) %>% 
+  summarize(estimate=sum(estimate))
+glimpse(acs_children)
 ```
+
