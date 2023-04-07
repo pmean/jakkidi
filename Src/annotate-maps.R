@@ -38,12 +38,14 @@ if (run_tests) {
   conditional_glimpse(test1)
 }
 
-# This function takes simple features
-# from two separate files, and maps
-# the first in green, and the second
-# with a red border. Then an annotation
-# is added inside each red border.
+# The plot_green function takes simple
+# features from two separate files, and 
+# maps the first in green, and the 
+# second with a red border. Then 
+# annotation text is added inside each
+# red border.
 plot_green <- function(sf1, sf2, sf_text) {
+
   # draw sf1 in green
   ggplot(sf1)                           +
     xlab("Longitude")                   +
@@ -72,7 +74,6 @@ plot_green <- function(sf1, sf2, sf_text) {
 }
 
 # Get some data to test this function.
-
 if (run_tests) {
   load(glue("{path_name}co.RData"))
   co %>%
@@ -80,4 +81,33 @@ if (run_tests) {
   conditional_glimpse(jackson)
   test_plot <- plot_green(jackson, jackson, "NAME")
   plot(test_plot)
+}
+
+### Find intersecting blocks for a given cd_id
+
+# The find_intersecting_bg function
+# takes the bg_cd_intersection file
+# and extracts all the bg_id values
+# associated with a particular cd_id.
+# It can exclude bg_id values where
+# the proportion of area inside is
+# less than one threshold (lo) or 
+# greater than a second threshold 
+# (hi).
+find_intersecting_bg <- function(
+    bg_cd_intersections, 
+    i_cd, 
+    lo=0,
+    hi=1) {
+
+  bg_cd_intersections                 %>%
+    filter(cd_id==i_cd)               %>%
+    filter(bg_prop_in >= lo)          %>%
+    filter(bg_prop_in <= hi)          %>%
+    pull(bg_id)
+}
+
+if (run_tests) {
+  load(glue("{path_name}cd-intersections.RData"))
+  find_intersecting_bg(bg_cd_intersection, 117, lo=0.1)
 }

@@ -68,24 +68,6 @@ conditional_glimpse(bg_counts)
 # cd-weights.RData also contains bl_counts
 ```
 
-### Find intersecting blocks for a given cd_id
-
-
-
-```{r}
-find_intersecting_bg <- function(bgi, i_cd, lo=0, hi=1) {
-  bgi                                 %>%
-    filter(cd_id==i_cd)               %>%
-    filter(bg_prop_in >= lo)          %>%
-    filter(bg_prop_in <= hi)          %>%
-    pull(bg_id)
-}
-
-if (run_tests) {
-  find_intersecting_bg(bg_cd_intersection, 117, lo=0.1)
-}
-```
-
 ### Create map function
 
 ```{r map-bg-cd}
@@ -109,7 +91,7 @@ if (run_tests) {
 ```
 
 ```{r}
-for(i_cd in cd$cd_id) {
+for(i_cd in cd$cd_id[1:2]) {
   cd0 <- filter(cd, cd_id==i_cd)
   ti <- glue("{cd0$cd_name} ({cd0$cd_id})")
   bg_cd_intersection                  %>%
