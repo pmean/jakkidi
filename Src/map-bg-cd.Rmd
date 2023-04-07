@@ -68,42 +68,32 @@ conditional_glimpse(bg_counts)
 # cd-weights.RData also contains bl_counts
 ```
 
-### Create map function
-
-```{r map-bg-cd}
-map_bg_cd <- function(cd0, bg0, bg_text) {
-  if (length(bg_text) != nrow(bg0)) return("Error")
-  if (any(cd0$bg_id != bg0$bg_id)) return("Error")
-  plot_green(cd0, bg0, bg_text)
-}
-
-if (run_tests) {
-  i_cd <- 116
-  cd0 <- filter(cd, cd_id==i_cd)
-  bg_cd_intersection                  %>%
-    find_intersecting_bg(i_cd, 0.1)    -> bg_subset
-  bg %>%
-    filter(bg_id %in% bg_subset)       -> bg0
-  ab <- str_sub(bg0$bg_id, 6, 12)
-  plot(map_bg_cd(cd0, bg0, ab))
-}
-
-```
-
 ```{r}
-for(i_cd in cd$cd_id[1:2]) {
+plot_cd_bg <- function(
+    cd, 
+    i_cd, 
+    bg, 
+    cross_list, 
+    text, 
+    lo=0, 
+    hi=0) {
+  # get common subsets
   cd0 <- filter(cd, cd_id==i_cd)
-  ti <- glue("{cd0$cd_name} ({cd0$cd_id})")
-  bg_cd_intersection                  %>%
-    find_intersecting_bg(i_cd, 0.00)   -> bg_subset
-  bg %>%
-    filter(bg_id %in% bg_subset)      %>%
-    arrange(bg_id)                     -> bg0
+  cross_list                          %>%
+    find_intersecting_bg(i_cd, lo, hi) -> bg_subset
   bg_counts                           %>%
     filter(bg_id %in% bg_subset)      %>%
     filter(cd_id == i_cd)             %>%
     arrange(bg_id)                    %>%
     pull(people)                       -> bg_text
-  plot(map_bg_cd(cd0, bg0, bg_text)+ggtitle(ti))
+  ti <- glue("{cd0$cd_name} ({cd0$cd_id})")
+  plot_green(cd0, bg0, bg_text)        +
+    ggtitle(ti))                       -> bg_plot
+  plot(bg_plot)
+}
+```
+
+```{r}
+for(i_cd in cd$cd_id[1:2]) {
 }
 ```
