@@ -1,0 +1,127 @@
+---
+title: "Map block groups and community districts"
+author: "Steve Simon"
+date: "Created 2023-04-06"
+output: html_document
+---
+
+### Program purpose
+
+This program will map a community district in green, add census blocks with red border, and place text inside the border.
+
+### Load key functions
+
+Running annotate-maps.R will create some useful functions.
+
++ conditional_glimpse
++ plot_green
+
+```{r}
+library(tidyverse)
+run_tests <- TRUE # allow simple function tests
+terse <- FALSE # display information on intermediate steps
+source("annotate-maps.R") # load several functions
+```
+
+### Load key data
+
+Key RData files are:
+
++ bg: shape files for census block groups
++ cd: shape files for community districts
++ cd-intersections: percentage area overlapping
++ cd-weights: estimated people/housing units in overlap
+
+### bg
+
+```{r}
+path_name <- "../data/"
+load(glue("{path_name}bg.RData"))
+conditional_glimpse(bg)
+```
+
+### cd
+
+```{r}
+path_name <- "../data/"
+load(glue("{path_name}cd.RData"))
+conditional_glimpse(cd)
+```
+
+### cd-intersections
+
+```{r}
+path_name <- "../data/"
+load(glue("{path_name}cd-intersections.RData"))
+conditional_glimpse(bg_cd_intersection)
+# cd-intersections.RData also contains
+# information at the block and tract
+# levels
+```
+
+### cd-weights
+
+```{r}
+path_name <- "../data/"
+load(glue("{path_name}cd-weights.RData"))
+conditional_glimpse(bg_counts)
+# cd-weights.RData also contains bl_counts
+```
+
+### Find intersecting blocks for a given cd_id
+
+
+
+```{r}
+find_intersecting_bg <- function(bgi, i_cd, lo=0, hi=1) {
+  bgi                                 %>%
+    filter(cd_id==i_cd)               %>%
+    filter(bg_prop_in >= lo)          %>%
+    filter(bg_prop_in <= hi)          %>%
+    pull(bg_id)
+}
+
+if (run_tests) {
+  find_intersecting_bg(bg_cd_intersection, 117, lo=0.1)
+}
+```
+
+### Create map function
+
+```{r map-bg-cd}
+map_bg_cd <- function(cd0, bg0, bg_text) {
+  if (length(bg_text) != nrow(bg0)) return("Error")
+  if (any(cd0$bg_id != bg0$bg_id)) return("Error")
+  plot_green(cd0, bg0, bg_text)
+}
+
+if (run_tests) {
+  i_cd <- 116
+  cd0 <- filter(cd, cd_id==i_cd)
+  bg_cd_intersection                  %>%
+    find_intersecting_bg(i_cd, 0.1)    -> bg_subset
+  bg %>%
+    filter(bg_id %in% bg_subset)       -> bg0
+  ab <- str_sub(bg0$bg_id, 6, 12)
+  plot(map_bg_cd(cd0, bg0, ab))
+}
+
+```
+
+```{r}
+for(i_cd in cd$cd_id) {
+  cd0 <- filter(cd, cd_id==i_cd)
+  ti <- glue("{cd0$cd_name} ({cd0$cd_id})")
+  bg_cd_intersection                  %>%
+    find_intersecting_bg(i_cd, 0.00)   -> bg_subset
+  bg %>%
+    filter(bg_id %in% bg_subset)      %>%
+    arrange(bg_id)                     -> bg0
+  bg_counts                           %>%
+    filter(bg_id %in% bg_subset)      %>%
+    filter(cd_id == i_cd)             %>%
+    arrange(bg_id)                    %>%
+    pull(people)                       -> bg_text
+  plot(map_bg_cd(cd0, bg0, bg_text)+ggtitle(ti))
+}
+```
