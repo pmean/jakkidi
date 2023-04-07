@@ -83,31 +83,55 @@ if (run_tests) {
   plot(test_plot)
 }
 
-### Find intersecting blocks for a given cd_id
-
-# The find_intersecting_bg function
-# takes the bg_cd_intersection file
-# and extracts all the bg_id values
-# associated with a particular cd_id.
-# It can exclude bg_id values where
-# the proportion of area inside is
-# less than one threshold (lo) or 
-# greater than a second threshold 
-# (hi).
-find_intersecting_bg <- function(
-    bg_cd_intersections, 
+# The find_bg function takes the 
+# bg_cd_intersection file and extracts 
+# all the bg_id values associated with
+# a particular cd_id. It can exclude 
+# bg_id values where the proportion of
+# area inside is less than one 
+# threshold (lo) or greater than a
+# second threshold (hi). Then it 
+# creates a subset of bg that is 
+# suitable for plotting.
+find_bg <- function(
     i_cd, 
     lo=0,
     hi=1) {
 
-  bg_cd_intersections                 %>%
+  bg_cd_intersection                  %>%
     filter(cd_id==i_cd)               %>%
     filter(bg_prop_in >= lo)          %>%
     filter(bg_prop_in <= hi)          %>%
-    pull(bg_id)
+    pull(bg_id)                        -> bg_subset
+  bg %>%
+    filter(bg_id %in% bg_subset)      %>%
+    arrange(bg_id)
 }
 
 if (run_tests) {
+  load(glue("{path_name}bg.RData"))
   load(glue("{path_name}cd-intersections.RData"))
-  find_intersecting_bg(bg_cd_intersection, 117, lo=0.1)
+  find_bg(117, lo=0.1)
 }
+
+# The align_tx function takes a file
+# with text data and subsets it by
+# a particular cd_id and the bg_id 
+# values found in bg0. This creates
+# a file that you can use as labels
+# for individual block groups.
+align_tx <- function(bg0, tx, i_cd) {
+  tx                                  %>%
+    filter(cd_id==i_cd)               %>%
+    filter(bg_id %in% bg0$bg_id)      %>%
+    arrange(bg_id)
+}
+
+if (run_tests) {
+  load(glue("{path_name}bg.RData"))
+  load(glue("{path_name}cd-intersections.RData"))
+  load(glue("{path_name}cd-weights.RData"))
+  bg0 <- find_bg(117, lo=0.1)
+  align_tx(bg0, bg_counts, 117)
+}
+
