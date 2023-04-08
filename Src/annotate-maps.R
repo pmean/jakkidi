@@ -34,6 +34,7 @@ conditional_glimpse <- function(x) {
 
 # Test of conditional_glimpse
 if (run_tests) {
+  cat("\n\nTesting conditional_glimpse\n\n")
   test1 <- data.frame(x=1:3, y=4:6)
   conditional_glimpse(test1)
 }
@@ -69,12 +70,13 @@ plot_green <- function(sf1, sf2, sf_text) {
     geom_sf_text(
       data=sf2,
       aes(label=sf_text),
-      size=2)                           -> m3
+      size=3)                           -> m3
   return(m3)
 }
 
 # Get some data to test this function.
 if (run_tests) {
+  cat("\n\nTesting plot_green\n\n")
   load(glue("{path_name}co.RData"))
   co %>%
     filter(GEOID=="29095") -> jackson
@@ -109,9 +111,10 @@ find_bg <- function(
 }
 
 if (run_tests) {
+  cat("\n\nTesting find_bg\n\n")
   load(glue("{path_name}bg.RData"))
   load(glue("{path_name}cd-intersections.RData"))
-  find_bg(117, lo=0.1)
+  find_bg(117, lo=0.1) %>% print
 }
 
 # The align_tx function takes a file
@@ -128,10 +131,11 @@ align_tx <- function(bg0, tx, i_cd) {
 }
 
 if (run_tests) {
+  cat("\n\nTesting align_tx\n\n")
   load(glue("{path_name}bg.RData"))
   load(glue("{path_name}cd-intersections.RData"))
   load(glue("{path_name}cd-weights.RData"))
   bg0 <- find_bg(117, lo=0.1)
-  align_tx(bg0, bg_counts, 117)
+  align_tx(bg0, bg_counts, 117) %>% print
 }
 

@@ -68,32 +68,25 @@ conditional_glimpse(bg_counts)
 # cd-weights.RData also contains bl_counts
 ```
 
-```{r}
-plot_cd_bg <- function(
-    cd, 
-    i_cd, 
-    bg, 
-    cross_list, 
-    text, 
-    lo=0, 
-    hi=0) {
-  # get common subsets
-  cd0 <- filter(cd, cd_id==i_cd)
-  cross_list                          %>%
-    find_intersecting_bg(i_cd, lo, hi) -> bg_subset
-  bg_counts                           %>%
-    filter(bg_id %in% bg_subset)      %>%
-    filter(cd_id == i_cd)             %>%
-    arrange(bg_id)                    %>%
-    pull(people)                       -> bg_text
-  ti <- glue("{cd0$cd_name} ({cd0$cd_id})")
-  plot_green(cd0, bg0, bg_text)        +
-    ggtitle(ti))                       -> bg_plot
-  plot(bg_plot)
-}
-```
 
 ```{r}
 for(i_cd in cd$cd_id[1:2]) {
+  cd0 <- filter(cd, cd_id==i_cd)
+  bg0 <- find_bg(i_cd, lo=0.1)
+  bg0$bg_area <- round(bg0$bg_area/(10^6), 2)
+  bg_text <- align_tx(bg0, bg_counts, i_cd)
+  ti <- glue("{cd0$cd_name} ({cd0$cd_id})")
+  for (v in c("bg_area")) {
+    ti <- glue("{v} for {cd0$cd_name} ({cd0$cd_id})")
+    plot_green(cd0, bg0, bg0[[v]]) +
+      ggtitle(ti)                        -> bg_plot
+    plot(bg_plot)
+  }
+  for (v in c("people", "units")) {
+    ti <- glue("{v} for {cd0$cd_name} ({cd0$cd_id})")
+    plot_green(cd0, bg0, bg_text[[v]]) +
+      ggtitle(ti)                        -> bg_plot
+    plot(bg_plot)
+  }
 }
 ```
