@@ -62,7 +62,8 @@ plot_green <- function(sf1, sf2, sf_text) {
     geom_sf(
       data=sf2,
       aes(),
-      fill=NA,
+      fill="white",
+      alpha=0.5,
       color="darkred")                  -> m2
 
   # add text from sf_text
@@ -81,7 +82,7 @@ if (run_tests) {
   co %>%
     filter(GEOID=="29095") -> jackson
   conditional_glimpse(jackson)
-  test_plot <- plot_green(jackson, jackson, "NAME")
+  test_plot <- plot_green(jackson, jackson, "Jackson")
   plot(test_plot)
 }
 
@@ -95,11 +96,10 @@ if (run_tests) {
 # second threshold (hi). Then it 
 # creates a subset of bg that is 
 # suitable for plotting.
-find_bg <- function(
-    i_cd, 
-    lo=0,
-    hi=1) {
-
+find_bg <- function(i_cd, lo=0, hi=1.01) {
+  # Note the default of 1.01 for hi is
+  # needed to account for rounding 
+  # errors.
   bg_cd_intersection                  %>%
     filter(cd_id==i_cd)               %>%
     filter(bg_prop_in >= lo)          %>%
@@ -109,12 +109,46 @@ find_bg <- function(
     filter(bg_id %in% bg_subset)      %>%
     arrange(bg_id)
 }
-
 if (run_tests) {
   cat("\n\nTesting find_bg\n\n")
   load(glue("{path_name}bg.RData"))
   load(glue("{path_name}cd-intersections.RData"))
   find_bg(117, lo=0.1) %>% print
+}
+
+
+
+# The find_bl function takes the 
+# bl_cd_intersection file and extracts 
+# all the bl_id values associated with
+# a particular cd_id and bl_id. It can
+# exclude bl_id values where the
+# proportion of area inside is less
+# than one threshold (lo) or greater
+# than a second threshold (hi). Then
+# it creates a subset of bg that is 
+# suitable for plotting.
+find_bl <- function(i_cd, i_bg, lo=0, hi=1.01) {
+  # Note the default of 1.01 for hi is
+  # needed to account for rounding 
+  # errors.
+  bl_cd_intersection                  %>%
+    filter(cd_id==i_cd)               %>%
+    filter(bg_id==i_bg)               %>%
+    filter(bl_prop_in >= lo)          %>%
+    filter(bl_prop_in <= hi)          %>%
+    pull(bl_id)                        -> bl_subset
+  bl %>%
+    filter(bl_id %in% bl_subset)      %>%
+    arrange(bl_id)
+}
+
+if (run_tests) {
+  cat("\n\nTesting find_bl\n\n")
+  load(glue("{path_name}bg.RData"))
+  load(glue("{path_name}bl.RData"))
+  load(glue("{path_name}cd-intersections.RData"))
+  find_bg("117", "290470222003") %>% print
 }
 
 # The align_tx function takes a file
@@ -135,6 +169,7 @@ if (run_tests) {
   load(glue("{path_name}bg.RData"))
   load(glue("{path_name}cd-intersections.RData"))
   load(glue("{path_name}cd-weights.RData"))
+  i_cd <- 117
   bg0 <- find_bg(117, lo=0.1)
   align_tx(bg0, bg_counts, 117) %>% print
 }
