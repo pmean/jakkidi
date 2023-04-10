@@ -12,12 +12,14 @@
 
 ### Load relevant files
 
+library(dplyr)
 library(glue)
 library(magrittr)
 library(sf)
+library(tidycensus)
 library(tidyverse)
-library(dplyr)
-path_name <- "../data/"
+run_local <- str_detect(getwd(), "src$", negate=TRUE)
+path_name <- ifelse(run_local, "data/", "../data/")
 if (!exists("terse")) terse <- FALSE
 if (!exists("run_tests")) run_tests <- TRUE
 
@@ -148,7 +150,9 @@ if (run_tests) {
   load(glue("{path_name}bg.RData"))
   load(glue("{path_name}bl.RData"))
   load(glue("{path_name}cd-intersections.RData"))
-  find_bg("117", "290470222003") %>% print
+  i_cd <- "117"
+  i_bg <- "290470222003"
+  find_bl(i_cd, i_bg) %>% print
 }
 
 # The align_tx function takes a file
@@ -172,5 +176,40 @@ if (run_tests) {
   i_cd <- 117
   bg0 <- find_bg(117, lo=0.1)
   align_tx(bg0, bg_counts, 117) %>% print
+}
+
+# The download_acs function uses the 
+# tidycensus package to get ACS data
+# for a specified list of variables.
+download_acs <- function(vlist) {
+  county_list <- c(
+    "Johnson",
+    "Leavenworth",
+    "Wyandotte",
+    "Cass",
+    "Clay",
+    "Jackson",
+    "Platte")
+  state_list <- rep(c("KS", "MO"), c(3,4))
+  load_variables(2020, "acs5", cache = TRUE) %>%
+    filter(name %in% vlist)                  %>%
+    print
+  acs_children <- NULL
+  for (i in 1:7) {
+    acs1 <- get_acs(
+      geography = "cbg", 
+      variables = vlist, 
+      state=state_list[i],
+      county=county_list[i],
+      year = 2020)
+    acs_children <- rbind(acs_children, acs1)
+  }
+  return(acs_children)
+}
+
+if (run_tests) {
+  cat("\n\nTesting download_acs\n\n")
+  vlist <- c("B01001_003", "B01001_027")
+  download_acs(vlist) %>% print
 }
 
