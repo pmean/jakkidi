@@ -1,0 +1,64 @@
+---
+title: "Map block groups and community districts"
+author: "Steve Simon"
+date: "Created 2023-04-06"
+output: html_document
+---
+
+### Program purpose
+
+This program will map a community district in green, add census blocks with red border, and place text inside the border.
+
+```{r setup}
+library(tidyverse)
+run_tests <- TRUE # allow simple function tests
+terse <- FALSE # display information on intermediate steps
+source("annotate-maps.R") # load several functions
+```
+
+### Load key functions
+
+Running annotate-maps.R will create some useful functions, download some data sets and create some new data. 
+
+### Display acs data on map
+
+```{r map-acs}
+for(i_cd in interesting_cd) {
+  # create subsets
+  cd0 <- filter(cd, cd_id==i_cd)
+  bg0 <- find_bg(i_cd, lo=0.02)
+  # Although there is no need for
+  # group_by and summarize when
+  # you are only downloading one
+  # variable from acs, the
+  # statements do not cause any
+  # harm.
+  bg_counts                           %>%
+    filter(cd_id==i_cd)               %>%
+    filter(bg_id %in% bg0$bg_id)      %>%
+    arrange(bg_id)                     -> bg_text
+  download_acs(c(
+      "B28001_011"))                  %>%
+    rename(bg_id=GEOID)               %>%
+    filter(bg_id %in% bg0$bg_id)      %>%
+    group_by(bg_id)                   %>%
+    summarize(no_pc=sum(estimate))    %>%
+    ungroup                           %>%
+    arrange(bg_id)                    %>%
+    inner_join(bg_text, by="bg_id")   %>%
+    data.frame                         -> bg_text
+  cat(glue("\n\n{i_cd}\n\n"))
+  conditional_glimpse(cd0)
+  conditional_glimpse(bg0)
+  conditional_print(bg_text)
+
+  # loop for text variables found in bg_text
+  for (v in c("unit_weights", "no_pc")) {
+    ti <- glue("{v} for {cd0$cd_name} ({cd0$cd_id})")
+    plot_green(cd0, bg0, bg_text[[v]]) +
+      ggtitle(ti)                        -> bg_plot
+    plot(bg_plot)
+  }
+}
+```
+

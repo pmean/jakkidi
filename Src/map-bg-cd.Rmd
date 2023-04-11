@@ -15,68 +15,16 @@ Running annotate-maps.R will create some useful functions.
 
 + conditional_glimpse
 + plot_green
++ find_bg
++ find_bl
++ align_tx
++ download_acs
 
 ```{r setup}
 library(tidyverse)
 run_tests <- TRUE # allow simple function tests
 terse <- FALSE # display information on intermediate steps
 source("annotate-maps.R") # load several functions
-```
-
-### Load key data
-
-Key RData files are:
-
-+ bg: shape files for census block groups
-+ cd: shape files for community districts
-+ cd-intersections: percentage area overlapping
-+ cd-weights: estimated people/housing units in overlap
-
-### bg
-
-```{r load-bg}
-path_name <- "../data/"
-load(glue("{path_name}bg.RData"))
-conditional_glimpse(bg)
-```
-
-### cd
-
-```{r load-cd}
-path_name <- "../data/"
-load(glue("{path_name}cd.RData"))
-conditional_glimpse(cd)
-```
-
-### cd-intersections
-
-```{r load-cd-intersections}
-path_name <- "../data/"
-load(glue("{path_name}cd-intersections.RData"))
-conditional_glimpse(bg_cd_intersection)
-# cd-intersections.RData also contains
-# information at the block and tract
-# levels
-```
-
-### cd-weights
-
-```{r load-cd-weights}
-path_name <- "../data/"
-load(glue("{path_name}cd-weights.RData"))
-# merge with bg_cd_intersection to get
-# bg_prop_in
-bg_counts                             %>%
-  inner_join(
-    bg_cd_intersection, 
-    by=c("bg_id", "cd_id"))           %>%
-  mutate(
-    bg_prop_in=round(100*bg_prop_in)) %>%
-  mutate(
-    short_id=str_sub(bg_id, 6, 12))    -> bg_counts
-conditional_glimpse(bg_counts)
-# cd-weights.RData also contains bl_counts
-
 ```
 
 ### Select interesting cds
@@ -102,7 +50,7 @@ cd                                     %>%
 ### Check out bg_prop_in
 
 ```{r map-bg_prop_in}
-for(i_cd in sort(cd$cd_id)) {
+for(i_cd in sort(cd$cd_id)[1]) {
   # create subsets
   cd0 <- filter(cd, cd_id==i_cd)
   bg0 <- find_bg(i_cd)
@@ -125,7 +73,7 @@ for(i_cd in sort(cd$cd_id)) {
 Look only at interesting community districts and focus only on those block groups that have more than 5% of their area inside the community district.
 
 ```{r map-people}
-for(i_cd in interesting_cd) {
+for(i_cd in sort(interesting_cd)[1]) {
   # create subsets
   cd0 <- filter(cd, cd_id==i_cd)
   bg0 <- find_bg(i_cd, lo=0.05)

@@ -1,0 +1,46 @@
+---
+title: "Map block groups and community districts"
+author: "Steve Simon"
+date: "Created 2023-04-06"
+output: html_document
+---
+
+### Program purpose
+
+This program will map a community district in green, add census blocks with red border, and place text inside the border.
+
+### Load key functions
+
+```{r setup}
+library(tidyverse)
+run_tests <- TRUE # allow simple function tests
+terse <- FALSE # display information on intermediate steps
+source("annotate-maps.R") # load several functions
+```
+
+### Display bg_prop_in
+
+```{r map-bg_prop_in}
+for(i_cd in sort(cd$cd_id)) {
+  # create subsets
+  cd0 <- filter(cd, cd_id==i_cd)
+  bg0 <- find_bg(i_cd)
+  bg_counts                           %>%
+    filter(cd_id==i_cd)               %>%
+    filter(bg_id %in% bg0$bg_id)      %>%
+    arrange(bg_id)                     -> bg_text
+  cat(glue("\n\n{i_cd}\n\n"))
+  conditional_glimpse(cd0)
+  conditional_glimpse(bg0)
+  conditional_glimpse(bg_text)
+
+  # loop for text variables found in bg_text
+  for (v in c("bg_prop_in")) {
+    ti <- glue("{v} for {cd0$cd_name} ({cd0$cd_id})")
+    plot_green(cd0, bg0, bg_text[[v]]) +
+      ggtitle(ti)                        -> bg_plot
+    plot(bg_plot)
+  }
+}
+```
+
