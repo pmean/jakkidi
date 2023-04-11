@@ -419,6 +419,39 @@ for (i_cd in interesting_cd[4]) {
       data.frame                      %>%
       select(3:6)                     %>%
       print
+<<<<<<< HEAD
+    }
+}
+```
+
+
+### Test acs download
+
+```{r}
+library(tidycensus)
+county_list <- c(
+  "Johnson",
+  "Leavenworth",
+  "Wyandotte",
+  "Cass",
+  "Clay",
+  "Jackson",
+  "Platte")
+state_list <- rep(c("KS", "MO"), c(3,4))
+
+vlist <- c("B01001_003", "B01001_027")
+load_variables(2020, "acs5", cache = TRUE) %>%
+  filter(name %in% vlist)
+
+acs_children <- NULL
+for (i in 1:7) {
+  acs1 <- get_acs(
+    geography = "cbg", 
+    variables = vlist, 
+    state=state_list[i],
+    county=county_list[i],
+    year = 2020)
+  acs_children <- rbind(acs_children, acs1)
   }
   ### Add information to bg0
   bg_counts                           %>%
