@@ -424,7 +424,7 @@ for (i_cd in interesting_cd) {
 }
 ```
 
-<<<<<<< HEAD
+
 ### Test acs download
 
 ```{r}
@@ -459,6 +459,3 @@ acs_children %<>%
   summarize(estimate=sum(estimate))
 glimpse(acs_children)
 ```
-
-=======
->>>>>>> 8688701b42b908fae0a7a86c8ddce9fc9fa12093
