@@ -16,7 +16,7 @@ Running annotate-maps.R will create some useful functions.
 + conditional_glimpse
 + plot_green
 
-```{r}
+```{r setup}
 library(tidyverse)
 run_tests <- TRUE # allow simple function tests
 terse <- FALSE # display information on intermediate steps
@@ -34,7 +34,7 @@ Key RData files are:
 
 ### bg
 
-```{r}
+```{r load-bg}
 path_name <- "../data/"
 load(glue("{path_name}bg.RData"))
 conditional_glimpse(bg)
@@ -42,7 +42,7 @@ conditional_glimpse(bg)
 
 ### cd
 
-```{r}
+```{r load-cd}
 path_name <- "../data/"
 load(glue("{path_name}cd.RData"))
 conditional_glimpse(cd)
@@ -50,7 +50,7 @@ conditional_glimpse(cd)
 
 ### cd-intersections
 
-```{r}
+```{r load-cd-intersections}
 path_name <- "../data/"
 load(glue("{path_name}cd-intersections.RData"))
 conditional_glimpse(bg_cd_intersection)
@@ -61,7 +61,7 @@ conditional_glimpse(bg_cd_intersection)
 
 ### cd-weights
 
-```{r}
+```{r load-cd-weights}
 path_name <- "../data/"
 load(glue("{path_name}cd-weights.RData"))
 # merge with bg_cd_intersection to get
@@ -81,7 +81,7 @@ conditional_glimpse(bg_counts)
 
 ### Select interesting cds
 
-```{r}
+```{r select-cds}
 name_list <- c(
   "Brookside",
   "Midtown",
@@ -101,7 +101,7 @@ cd                                     %>%
 
 ### Check out bg_prop_in
 
-```{r}
+```{r map-bg_prop_in}
 for(i_cd in sort(cd$cd_id)) {
   # create subsets
   cd0 <- filter(cd, cd_id==i_cd)
@@ -124,7 +124,7 @@ for(i_cd in sort(cd$cd_id)) {
 
 Look only at interesting community districts and focus only on those block groups that have more than 5% of their area inside the community district.
 
-```{r}
+```{r map-people}
 for(i_cd in interesting_cd) {
   # create subsets
   cd0 <- filter(cd, cd_id==i_cd)
@@ -144,5 +144,34 @@ for(i_cd in interesting_cd) {
     plot(bg_plot)
   }
 }
+```
+
+### Get counts of children 5 and under
+
+```{r map-children, error=TRUE}
+for(i_cd in interesting_cd) {
+  # create subsets
+  cd0 <- filter(cd, cd_id==i_cd)
+  bg0 <- find_bg(i_cd, lo=0.05)
+  vlist <- c("B01001_003", "B01001_027")
+  acs_kids <- download_acs(vlist)
+  acs_kids                            %>%
+    group_by(GEOID)                   %>%
+    summarize(acs_kids=sum(estimate)) %>%
+    rename(bg_id=GEOID)                -> acs_kids
+  conditional_glimpse(acs_kids)
+  bg_text <- align_tx(acs_kids, bg0)
+  conditional_glimpse(bg_text)
+
+  # loop for text variables found in acs_text
+  for (v in c("acs_kids")) {
+    ti <- glue("{v} for {cd0$cd_name} ({cd0$cd_id})")
+    plot_green(cd0, bg0, bg_text[[v]]) +
+      ggtitle(ti)                        -> bg_plot
+    plot(bg_plot)
+  }
+}
+```
+
 ```
 

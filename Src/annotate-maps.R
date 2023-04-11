@@ -18,8 +18,7 @@ library(magrittr)
 library(sf)
 library(tidycensus)
 library(tidyverse)
-run_local <- str_detect(getwd(), "src$", negate=TRUE)
-path_name <- ifelse(run_local, "data/", "../data/")
+path_name <- "../data/"
 if (!exists("terse")) terse <- FALSE
 if (!exists("run_tests")) run_tests <- TRUE
 
@@ -161,11 +160,11 @@ if (run_tests) {
 # values found in bg0. This creates
 # a file that you can use as labels
 # for individual block groups.
-align_tx <- function(bg0, tx, i_cd) {
+align_tx <- function(bg0, tx, i_cd=0) {
   tx                                  %>%
-    filter(cd_id==i_cd)               %>%
     filter(bg_id %in% bg0$bg_id)      %>%
     arrange(bg_id)
+  if (i_cd > 0) tx <- filter(tx, cd_id==i_cd)
 }
 
 if (run_tests) {
