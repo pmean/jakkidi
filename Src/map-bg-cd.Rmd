@@ -1,0 +1,148 @@
+---
+title: "Map block groups and community districts"
+author: "Steve Simon"
+date: "Created 2023-04-06"
+output: html_document
+---
+
+### Program purpose
+
+This program will map a community district in green, add census blocks with red border, and place text inside the border.
+
+### Load key functions
+
+Running annotate-maps.R will create some useful functions.
+
++ conditional_glimpse
++ plot_green
+
+```{r}
+library(tidyverse)
+run_tests <- TRUE # allow simple function tests
+terse <- FALSE # display information on intermediate steps
+source("annotate-maps.R") # load several functions
+```
+
+### Load key data
+
+Key RData files are:
+
++ bg: shape files for census block groups
++ cd: shape files for community districts
++ cd-intersections: percentage area overlapping
++ cd-weights: estimated people/housing units in overlap
+
+### bg
+
+```{r}
+path_name <- "../data/"
+load(glue("{path_name}bg.RData"))
+conditional_glimpse(bg)
+```
+
+### cd
+
+```{r}
+path_name <- "../data/"
+load(glue("{path_name}cd.RData"))
+conditional_glimpse(cd)
+```
+
+### cd-intersections
+
+```{r}
+path_name <- "../data/"
+load(glue("{path_name}cd-intersections.RData"))
+conditional_glimpse(bg_cd_intersection)
+# cd-intersections.RData also contains
+# information at the block and tract
+# levels
+```
+
+### cd-weights
+
+```{r}
+path_name <- "../data/"
+load(glue("{path_name}cd-weights.RData"))
+# merge with bg_cd_intersection to get
+# bg_prop_in
+bg_counts                             %>%
+  inner_join(
+    bg_cd_intersection, 
+    by=c("bg_id", "cd_id"))           %>%
+  mutate(
+    bg_prop_in=round(100*bg_prop_in)) %>%
+  mutate(
+    short_id=str_sub(bg_id, 6, 12))    -> bg_counts
+conditional_glimpse(bg_counts)
+# cd-weights.RData also contains bl_counts
+
+```
+
+### Select interesting cds
+
+```{r}
+name_list <- c(
+  "Brookside",
+  "Midtown",
+  "Swope Park",
+  "Waldo",
+  "Ward Parkway",
+  "Greater Downtown",
+  "Antioch",
+  "Little Blue Valley",
+  "Rosedale",
+  "Argentine")
+
+cd                                     %>%
+  filter(cd_name %in% name_list)       %>%
+  pull(cd_id)                           -> interesting_cd
+```
+
+### Check out bg_prop_in
+
+```{r}
+for(i_cd in sort(cd$cd_id)) {
+  # create subsets
+  cd0 <- filter(cd, cd_id==i_cd)
+  bg0 <- find_bg(i_cd)
+  bg0$bg_area <- round(bg0$bg_area/(10^6), 2)
+  bg_text <- align_tx(bg0, bg_counts, i_cd)
+  bg0$short_id <- str_sub(bg0$bg_id, 6, 12)
+
+  # loop for text variables found in bg_text
+  for (v in c("bg_prop_in")) {
+    ti <- glue("{v} for {cd0$cd_name} ({cd0$cd_id})")
+    plot_green(cd0, bg0, bg_text[[v]]) +
+      ggtitle(ti)                        -> bg_plot
+    plot(bg_plot)
+  }
+}
+```
+
+### Get counts of people and units
+
+Look only at interesting community districts and focus only on those block groups that have more than 5% of their area inside the community district.
+
+```{r}
+for(i_cd in interesting_cd) {
+  # create subsets
+  cd0 <- filter(cd, cd_id==i_cd)
+  bg0 <- find_bg(i_cd, lo=0.05)
+  bg0$bg_area <- round(bg0$bg_area/(10^6), 2)
+  bg_text <- align_tx(bg0, bg_counts, i_cd)
+  bg0$short_id <- str_sub(bg0$bg_id, 6, 12)
+
+  # loop for text variables found in bg_text
+  for (v in c(
+      "short_id", 
+      "people", 
+      "units")) {
+    ti <- glue("{v} for {cd0$cd_name} ({cd0$cd_id})")
+    plot_green(cd0, bg0, bg_text[[v]]) +
+      ggtitle(ti)                        -> bg_plot
+    plot(bg_plot)
+  }
+}
+```
+

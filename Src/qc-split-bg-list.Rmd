@@ -27,7 +27,7 @@ library(sf)
 library(tidyverse)
 library(dplyr)
 path_name <- "../data/"
-terse <- TRUE
+terse <- FALSE
 ```
 
 ```{r}
@@ -76,7 +76,8 @@ for (i in 1:7) {
 glimpse(acs_children)
 acs_children %<>% 
   group_by(GEOID) %>% 
-  summarize(estimate=sum(estimate))
+  summarize(estimate=sum(estimate)) %>%
+  rename(bg_id=GEOID)
 glimpse(acs_children)
 ```
 
@@ -334,8 +335,8 @@ check_bl <- function(view_merge) {
 }
 ```
 
-```{r loop, warnings=FALSE, message=FALSE, echo=FALSE}
-for (i_cd in interesting_cd) {
+```{r loop, errors=TRUE, echo=FALSE}
+for (i_cd in interesting_cd[4]) {
   # add extra information to bl and bg
   bl$bg_id <- str_sub(bl$bl_id, 1, 12)
   bg$ab <- str_sub(bg$bg_id, 6, 12)
@@ -367,9 +368,7 @@ for (i_cd in interesting_cd) {
     filter(bg_prop_in < 0.9)          %>%
     select(bg_id, bg_prop_in)          -> bg_list
   if (nrow(bg_list)==0) next
-  bg                                  %>%
-    filter(bg_id %in% bg_list$bg_id)   -> bg0
-  
+
   for (i_bg in bg_list$bg_id) {
     merged_data <- merge_info(i_bg)
  
@@ -420,6 +419,7 @@ for (i_cd in interesting_cd) {
       data.frame                      %>%
       select(3:6)                     %>%
       print
+<<<<<<< HEAD
     }
 }
 ```
@@ -452,10 +452,59 @@ for (i in 1:7) {
     county=county_list[i],
     year = 2020)
   acs_children <- rbind(acs_children, acs1)
+  }
+  ### Add information to bg0
+  bg_counts                           %>%
+    filter(cd_id==i_cd)               %>%
+    mutate(
+      w_p=round(people_in/people, 2)) %>%
+    mutate(
+      w_u=round(units_in/units, 2))   %>%
+    inner_join(
+      acs_children, by="bg_id")       %>%
+    mutate(
+      weighted_estimate=
+        w_p*estimate)                 %>%
+    select(
+      bg_id,
+      cd_id,
+      people_in,
+      people,
+      w_p,
+      estimate)                       
+    data.frame                         -> bg3
+  cat("\n\nACS children\n\n")
+  print(bg3)
+  cat("\nTotals\n\n")
+  bg3 %>%
+    summarize(
+      weighted_sum=sum(weights))       %>% print
+  next
+  bg3                                 %>%
+    inner_join(bg0, by="bg_id")        -> bg2
+  conditional_glimpse(bg2)
+  
+  # plot w_p
+  plot_green(cd0, bg0, "bg_id") %>% plot
+  sf1 <- cd0
+  ggplot(sf1)                           +
+    xlab("Longitude")                   +
+    ylab("Latitude")                    +
+      geom_sf(
+        aes(),
+        fill="lightgreen",
+        color=NA)                       -> m1
+  plot(m1)
+  next
+  ggplot(cd0) + 
+    geom_sf(
+      aes(),
+      fill=NA,
+      color="darkred") %>% plot
+  next
+  ggplot(data=bg2) + geom_sf(aes()) %>% plot
+  plot_green(cd0, bg2, "w_p") +
+    ggtitle(cd0$cd_name)           -> g_map
+  plot(g_map)
 }
-glimpse(acs_children)
-acs_children %<>% 
-  group_by(GEOID) %>% 
-  summarize(estimate=sum(estimate))
-glimpse(acs_children)
 ```
