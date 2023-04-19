@@ -22,10 +22,10 @@ Running annotate-maps.R will create some useful functions, download some data se
 ### Display acs data on map
 
 ```{r map-acs}
-for(i_cd in interesting_cd) {
+for(i_cd in 129) {
   # create subsets
   cd0 <- filter(cd, cd_id==i_cd)
-  bg0 <- find_bg(i_cd, lo=0.02)
+  bg0 <- find_bg(i_cd)
   bg_counts                           %>%
     filter(cd_id==i_cd)               %>%
     filter(bg_id %in% bg0$bg_id)      %>%
@@ -41,15 +41,44 @@ for(i_cd in interesting_cd) {
     arrange(bg_id)                    %>%
     inner_join(bg_text, by="bg_id")   %>%
     data.frame                          -> bg_text
+  
+bg_text                               %>%
+  mutate(
+    weighted_children = 
+      round(
+        people_weights*children))     %>%
+  select(
+    bg_id, 
+    cd_id, 
+    children, 
+    people_weights,
+    weighted_children)                 -> children_table
+children_table                        %>%
+  group_by(cd_id)                     %>%
+  summarize(
+    children =
+      sum(children),
+    weighted_children =
+      sum(weighted_children))         %>%
+  mutate(bg_id="Total")               %>%
+  bind_rows(children_table, .)        %>%
+  arrange(
+    desc(people_weights),
+    desc(children))                    -> children_totals
+  print(children_totals)
+  
   cat(glue("\n\n{i_cd}\n\n"))
   conditional_glimpse(cd0)
   conditional_glimpse(bg0)
-  conditional_print(bg_text)
+  conditional_glimpse(bg_text)
 
   # loop for text variables found in bg_text
-  for (v in c("people_weights", "children")) {
+  for (v in c(
+      "people_weights", 
+      "children",
+      "weighted_children")) {
     ti <- glue("{v} for {cd0$cd_name} ({cd0$cd_id})")
-    plot_green(cd0, bg0, bg_text[[v]]) +
+    plot_green(cd0, bg0, children_table[[v]]) +
       ggtitle(ti)                        -> bg_plot
     plot(bg_plot)
   }
